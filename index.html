@@ -9,13 +9,13 @@
   * { box-sizing: border-box; }
   body { margin: 0; font-family: "Hiragino Sans", "Noto Sans JP", sans-serif; background: #17142b; color: #ece9f7; }
   header { position: sticky; top: 0; z-index: 10; background: #221d42; padding: 12px 16px; display: flex; align-items: center; gap: 10px; box-shadow: 0 2px 10px rgba(0,0,0,.4); }
-  header h1 { font-size: 18px; margin: 0; color: #f5d9a8; }
+  header h1 { font-size: 18px; margin: 0; color: #cfc6ee; }
   header .tag { font-size: 11px; color: #b9b2d9; }
   header button { margin-left: auto; background: rgba(255,255,255,.12); color: #fff; border: 1px solid rgba(255,255,255,.35); border-radius: 8px; padding: 6px 12px; font-size: 13px; cursor: pointer; }
   main { max-width: 760px; margin: 0 auto; padding: 16px 12px 48px; }
   .card { background: #241f47; border: 1px solid #372f66; border-radius: 14px; padding: 16px; margin-bottom: 14px; }
   .card.preset { border-color: #c98a2d; }
-  .card h2 { font-size: 16px; margin: 0 0 8px; color: #f5d9a8; }
+  .card h2 { font-size: 16px; margin: 0 0 8px; color: #cfc6ee; }
   .muted { color: #a79fd0; font-size: 13px; line-height: 1.6; }
   .small { font-size: 11px; color: #8d86b8; }
   .rec-title { font-size: 17px; font-weight: 700; }
@@ -28,13 +28,13 @@
   .ratio-bar > div { height: 100%; }
   .flavor-line { font-size: 14px; line-height: 1.7; }
   .flavor-line .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; }
-  .stars { color: #f5c542; font-size: 15px; letter-spacing: 2px; }
+  .stars { color: #cbb26a; font-size: 15px; letter-spacing: 2px; }
   .stars .off { color: #554d80; }
   button.primary { background: #c98a2d; color: #fff; border: none; border-radius: 10px; padding: 12px; font-size: 15px; font-weight: 700; cursor: pointer; width: 100%; }
   button.sub { background: #2d2760; color: #ece9f7; border: 1px solid #554d99; border-radius: 10px; padding: 9px 14px; font-size: 14px; font-weight: 700; cursor: pointer; }
   button.danger { background: transparent; color: #f0a3a3; border: 1px solid #7a4040; border-radius: 10px; padding: 9px 14px; font-size: 13px; cursor: pointer; }
   button.fav { background: transparent; border: none; font-size: 20px; cursor: pointer; color: #554d80; }
-  button.fav.on { color: #f5c542; }
+  button.fav.on { color: #cbb26a; }
   .row-btns { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
   input[type="text"], input[type="number"], input[type="date"], textarea { font-size: 14px; padding: 9px; border: 1px solid #554d99; border-radius: 8px; width: 100%; background: #17142b; color: #ece9f7; }
   textarea { min-height: 70px; resize: vertical; }
@@ -45,23 +45,23 @@
   .chip.on { background: #c98a2d; border-color: #c98a2d; color: #fff; font-weight: 700; }
   .chip.vibe.on { background: #a03d7d; border-color: #a03d7d; }
   .chip .en { font-size: 11px; opacity: .75; }
-  .genre { font-size: 13px; font-weight: 700; color: #f5d9a8; margin: 14px 0 2px; }
+  .genre { font-size: 13px; font-weight: 700; color: #cfc6ee; margin: 14px 0 2px; }
   .gram-row { display: flex; align-items: center; gap: 8px; background: #2d2760; border-radius: 10px; padding: 8px 10px; margin: 6px 0; }
   .gram-row .name { flex: 1; font-size: 14px; font-weight: 700; }
   .gram-row input { width: 84px; }
-  .gram-row .pct { font-size: 13px; color: #f5d9a8; width: 52px; text-align: right; }
+  .gram-row .pct { font-size: 13px; color: #cfc6ee; width: 52px; text-align: right; }
   .gram-row button { background: transparent; border: none; color: #f0a3a3; font-size: 16px; cursor: pointer; }
   .total-line { font-size: 15px; font-weight: 700; margin-top: 8px; }
   .star-btns button { background: transparent; border: none; font-size: 26px; color: #554d80; cursor: pointer; padding: 2px; }
-  .star-btns button.on { color: #f5c542; }
-  .toast { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%); background: #f5d9a8; color: #26233a; padding: 10px 18px; border-radius: 999px; font-size: 14px; font-weight: 700; z-index: 50; box-shadow: 0 4px 14px rgba(0,0,0,.4); }
+  .star-btns button.on { color: #cbb26a; }
+  .toast { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%); background: #cfc6ee; color: #26233a; padding: 10px 18px; border-radius: 999px; font-size: 14px; font-weight: 700; z-index: 50; box-shadow: 0 4px 14px rgba(0,0,0,.4); }
   footer { text-align: center; color: #7d76ab; font-size: 12px; padding: 0 16px 30px; line-height: 1.7; }
 .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
 .cal-wd { text-align: center; font-size: 12px; opacity: .7; padding: 2px 0; }
 .cal-wd.sun { color: #ff9d9d; opacity: 1; } .cal-wd.sat { color: #9db8ff; opacity: 1; }
 .cal-cell { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.12); border-radius: 10px; padding: 5px 2px; color: inherit; display: flex; flex-direction: column; align-items: center; gap: 1px; cursor: pointer; font-family: inherit; }
-.cal-cell.today { border-color: #f5d9a8; }
-.cal-cell.sel { background: #f5d9a8; color: #241a08; }
+.cal-cell.today { border-color: #cfc6ee; }
+.cal-cell.sel { background: #cfc6ee; color: #241a08; }
 .cal-d { font-size: 14px; font-weight: 700; }
 .cal-c { font-size: 10px; }
 .cal-c.none { opacity: .25; }
@@ -93,13 +93,13 @@
         <button class="sub" id="btn-calendar">📅 カレンダーで見る</button>
       </div>
     </div>
-    <h2 style="color:#f5d9a8;font-size:16px;margin:18px 0 8px">おすすめミックス</h2>
+    <h2 style="color:#cfc6ee;font-size:16px;margin:18px 0 8px">おすすめミックス</h2>
     <p class="muted">自分の鉄板配合を登録しておく欄です。「この配合で記録する」を押すと、その配合がコピーされて、今日の日付の新しい記録として開きます。味メモなどを書いて保存すれば、その日の記録になります（おすすめ自体は変わりません）。</p>
     <div id="preset-list"></div>
     <div class="row-btns" style="margin-bottom:16px">
       <button class="sub" id="btn-new-preset">＋ おすすめミックスを追加</button>
     </div>
-    <h2 style="color:#f5d9a8;font-size:16px;margin:18px 0 8px">記録一覧</h2>
+    <h2 style="color:#cfc6ee;font-size:16px;margin:18px 0 8px">記録一覧</h2>
     <div id="record-list"></div>
   </section>
 
@@ -114,7 +114,7 @@
       </div>
       <div class="cal-grid" id="cal-grid" style="margin-top:10px"></div>
     </div>
-    <h2 id="cal-day-title" style="color:#f5d9a8;font-size:16px;margin:18px 0 8px"></h2>
+    <h2 id="cal-day-title" style="color:#cfc6ee;font-size:16px;margin:18px 0 8px"></h2>
     <div id="cal-records"></div>
   </section>
 
@@ -122,14 +122,14 @@
   <section id="view-help" class="hidden">
     <div class="card">
       <h2>使い方</h2>
-      <p class="muted"><b style="color:#f5d9a8">記録を作る</b><br>「＋ 新しいミックスを記録」から、フレーバーを選んでグラム数を入れるだけ。割合（％）は自動で計算されます。味のメモ・雰囲気メモ・星評価も一緒に残せます。</p>
-      <p class="muted"><b style="color:#f5d9a8">おすすめミックス</b><br>自分の鉄板配合を先に登録しておく欄です。「お店の定番」と「自分のおすすめ」の2種類があり、お店の定番はお店ごとに違うので、店名と一緒に自分で登録する形式です。複数のお店で働く人は、お店ごとに定番を分けて登録すると、その日のシフトのお店の配合がすぐ出せます。おすすめの「この配合で記録する」を押すと、その配合がコピーされて、今日の日付の新しい記録の画面が開きます。味メモや雰囲気メモを書いて保存すると、その日の記録として残ります。おすすめに登録した配合そのものは変わりません。</p>
-      <p class="muted"><b style="color:#f5d9a8">サイズ違い</b><br>サイズの名前はお店によって違うので、サイズ名は自由に入力できます（レギュラー／ロングなど、そのお店の呼び方でOK）。編集画面の「サイズ違いを登録」から、今の配合をコピーして別サイズとして登録できます。グラム数は倍率（そのまま／×0.7／×1.4）で換算して開くので、あとは微調整するだけです。サイズで割合自体が変わる配合も、そのまま直して保存できます。</p>
-      <p class="muted"><b style="color:#f5d9a8">グラム数と割合</b><br>グラム数は0.1g単位まで入力できます（例：12.5g）。割合は入力したグラム数から自動計算されるので、細かい数字でも大丈夫です。</p>
-      <p class="muted"><b style="color:#f5d9a8">相性サジェスト</b><br>フレーバーを選ぶと「このフレーバーに合う候補」が理由つきで出ます。タップすると配合に追加されます。新しいミックスを考えるヒントにどうぞ。</p>
-      <p class="muted"><b style="color:#f5d9a8">フレーバーを探す</b><br>カタログはブランド別・味の系統別・ニコチンあり／なしで絞り込めます。名前での検索もできます。カタログにないフレーバーは「フレーバーを追加」から自分で足せます。</p>
-      <p class="muted"><b style="color:#f5d9a8">カレンダーと登録時刻</b><br>「カレンダーで見る」から月カレンダーを開くと、記録のある日に件数が出ます。日をタップすると、その日の記録が見られます。「何曜日に作ったやつが良かった」みたいな探し方に便利です。日付には曜日も表示されます。記録を作った時刻は自動で残り、カードに「○:○○ 登録」と出ます（時刻が出ないのは、この機能より前に作られた記録です）。</p>
-      <p class="muted"><b style="color:#f5d9a8">保存について</b><br>記録はすべてこの端末の中（ブラウザ）に保存され、外部に送信されません。端末を変えると記録は引き継がれないので注意してください。</p>
+      <p class="muted"><b style="color:#cfc6ee">記録を作る</b><br>「＋ 新しいミックスを記録」から、フレーバーを選んでグラム数を入れるだけ。割合（％）は自動で計算されます。味のメモ・雰囲気メモ・星評価も一緒に残せます。</p>
+      <p class="muted"><b style="color:#cfc6ee">おすすめミックス</b><br>自分の鉄板配合を先に登録しておく欄です。「お店の定番」と「自分のおすすめ」の2種類があり、お店の定番はお店ごとに違うので、店名と一緒に自分で登録する形式です。複数のお店で働く人は、お店ごとに定番を分けて登録すると、その日のシフトのお店の配合がすぐ出せます。おすすめの「この配合で記録する」を押すと、その配合がコピーされて、今日の日付の新しい記録の画面が開きます。味メモや雰囲気メモを書いて保存すると、その日の記録として残ります。おすすめに登録した配合そのものは変わりません。</p>
+      <p class="muted"><b style="color:#cfc6ee">サイズ違い</b><br>サイズの名前はお店によって違うので、サイズ名は自由に入力できます（レギュラー／ロングなど、そのお店の呼び方でOK）。編集画面の「サイズ違いを登録」から、今の配合をコピーして別サイズとして登録できます。グラム数は倍率（そのまま／×0.7／×1.4）で換算して開くので、あとは微調整するだけです。サイズで割合自体が変わる配合も、そのまま直して保存できます。</p>
+      <p class="muted"><b style="color:#cfc6ee">グラム数と割合</b><br>グラム数は0.1g単位まで入力できます（例：12.5g）。割合は入力したグラム数から自動計算されるので、細かい数字でも大丈夫です。</p>
+      <p class="muted"><b style="color:#cfc6ee">相性サジェスト</b><br>フレーバーを選ぶと「このフレーバーに合う候補」が理由つきで出ます。タップすると配合に追加されます。新しいミックスを考えるヒントにどうぞ。</p>
+      <p class="muted"><b style="color:#cfc6ee">フレーバーを探す</b><br>カタログはブランド別・味の系統別・ニコチンあり／なしで絞り込めます。名前での検索もできます。カタログにないフレーバーは「フレーバーを追加」から自分で足せます。</p>
+      <p class="muted"><b style="color:#cfc6ee">カレンダーと登録時刻</b><br>「カレンダーで見る」から月カレンダーを開くと、記録のある日に件数が出ます。日をタップすると、その日の記録が見られます。「何曜日に作ったやつが良かった」みたいな探し方に便利です。日付には曜日も表示されます。記録を作った時刻は自動で残り、カードに「○:○○ 登録」と出ます（時刻が出ないのは、この機能より前に作られた記録です）。</p>
+      <p class="muted"><b style="color:#cfc6ee">保存について</b><br>記録はすべてこの端末の中（ブラウザ）に保存され、外部に送信されません。端末を変えると記録は引き継がれないので注意してください。</p>
       <button class="primary" id="btn-help-close">一覧に戻る</button>
     </div>
   </section>
