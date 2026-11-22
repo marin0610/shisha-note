@@ -658,7 +658,7 @@ function entryMatches(f) {
   return true;
 }
 function renderCfChips() {
-  var brands = ["すべて"].concat(BRAND_DATA.map(function(b){ return b.brand; })).concat(["系統別", "カスタム"]);
+  var brands = ["すべて"].concat(BRAND_DATA.map(function(b){ return b.brand; }).sort(function(a, b){ return a.localeCompare(b, "en"); })).concat(["系統別", "カスタム"]);
   document.getElementById("cf-brands").innerHTML = brands.map(function(b) {
     return '<button class="chip' + (CF.brand === b ? " on" : "") + '" data-b="' + esc(b) + '">' + esc(b) + '</button>';
   }).join("");
@@ -677,7 +677,7 @@ function renderCfChips() {
 var COLLAPSE = {};
 function renderCatalog() {
   var entries = catalogEntries().filter(entryMatches);
-  var order = BRAND_DATA.map(function(b){ return b.brand; }).concat(["系統別", "カスタム"]);
+  var order = BRAND_DATA.map(function(b){ return b.brand; }).sort(function(a, b){ return a.localeCompare(b, "en"); }).concat(["系統別", "カスタム"]);
   var html = "", shown = 0;
   var filtering = CF.brand !== "すべて" || CF.genre !== "すべて" || CF.nic !== "all" || !!CF.q;
   order.forEach(function(brand) {
