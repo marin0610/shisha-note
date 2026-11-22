@@ -95,7 +95,7 @@
     </div>
     <h2 style="color:#cfc6ee;font-size:16px;margin:18px 0 8px">推しフレーバー診断</h2>
     <div class="card">
-      <p class="muted">推しのイメージカラーと雰囲気に答えると、カタログ817種から「推し概念ミックス」を診断します。やってて楽しいやつです。</p>
+      <p class="muted">推しのイメージカラーと雰囲気に答えると、カタログ820種から「推し概念ミックス」を診断します。やってて楽しいやつです。</p>
       <label for="oshi-name">推しの名前（任意）</label>
       <input type="text" id="oshi-name" placeholder="例：推しの名前">
       <label>Q1. 推しのイメージカラーは？</label>
@@ -108,6 +108,8 @@
     </div>
     <h2 style="color:#cfc6ee;font-size:16px;margin:18px 0 8px">おすすめミックス</h2>
     <p class="muted">自分の鉄板配合を登録しておく欄です。下にはネットで話題の再現ミックス（カルピス風・チーズケーキ風など）も「話題のミックス」として載っています。「この配合で記録する」を押すと、その配合がコピーされて、今日の日付の新しい記録として開きます。味メモなどを書いて保存すれば、その日の記録になります（おすすめ自体は変わりません）。</p>
+    <input type="text" id="preset-search" placeholder="ミックスをキーワード検索（例：カルピス、チーズケーキ、推しの名前）">
+    <div style="height:8px"></div>
     <div id="preset-list"></div>
     <div class="row-btns" style="margin-bottom:16px">
       <button class="sub" id="btn-new-preset">＋ おすすめミックスを追加</button>
@@ -388,6 +390,7 @@ state.records.forEach(function(r) {
 function save() { try { localStorage.setItem(LS_KEY, JSON.stringify(state)); } catch (e) {} }
 save();
 function esc(s) { return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
+function normQ(s) { return String(s == null ? "" : s).toLowerCase().replace(/[ぁ-ゖ]/g, function(c){ return String.fromCharCode(c.charCodeAt(0) + 0x60); }); }
 function toast(msg) { var t = document.getElementById("toast"); t.textContent = msg; t.classList.remove("hidden"); setTimeout(function(){ t.classList.add("hidden"); }, 2400); }
 
 /* ========= 計算 ========= */
@@ -422,7 +425,7 @@ function recordMatches(rec, query, vibe, favOnly) {
   if (query) {
     var nicWords = (rec.items.some(function(it){ return it.nic === 1; }) ? "ニコチン入り " : "") + (rec.items.some(function(it){ return it.nic === 0; }) ? "ノンニコチン" : "");
     var hay = [rec.title, rec.place || "", rec.taste || "", rec.vibeText || "", nicWords].concat(rec.items.map(function(it){ return it.label + " " + (it.en || "") + " " + (it.brand || "") + " " + (it.genre || ""); })).join(" ").toLowerCase();
-    if (hay.indexOf(query.toLowerCase()) < 0) return false;
+    if (normQ(hay).indexOf(normQ(query)) < 0) return false;
   }
   return true;
 }
@@ -528,15 +531,24 @@ function presetCardHtml(r) {
     + '<div class="row-btns"><button class="sub" data-use="' + r.id + '">この配合で記録する</button>' + (r.kind === "net" ? '' : '<button class="sub" data-pedit="' + r.id + '">編集する</button>') + '</div>'
     + '</div>';
 }
+var PRESET_Q = "";
+function presetMatches(p) {
+  if (!PRESET_Q) return true;
+  var hay = normQ([p.title, p.note || "", p.shopName || "", p.oshi || ""].concat(p.items.map(function(it){ return it.label + " " + (it.brand || ""); })).join(" "));
+  return hay.indexOf(normQ(PRESET_Q)) >= 0;
+}
 function renderPresets() {
-  var std = state.presets.filter(function(p){ return p.kind === "shop"; });
-  var concept = state.presets.filter(function(p){ return p.kind === "concept"; });
-  var mine = state.presets.filter(function(p){ return p.kind !== "shop" && p.kind !== "concept"; });
-  var html = '<p class="muted" style="margin:4px 0">― 話題のミックス（ネットで人気）―</p>' + NET_MIXES.map(presetCardHtml).join("");
+  var net = NET_MIXES.filter(presetMatches);
+  var std = state.presets.filter(function(p){ return p.kind === "shop"; }).filter(presetMatches);
+  var concept = state.presets.filter(function(p){ return p.kind === "concept"; }).filter(presetMatches);
+  var mine = state.presets.filter(function(p){ return p.kind !== "shop" && p.kind !== "concept"; }).filter(presetMatches);
+  var html = "";
+  if (net.length) html += '<p class="muted" style="margin:4px 0">― 話題のミックス（ネットで人気）―</p>' + net.map(presetCardHtml).join("");
   if (std.length) html += '<p class="muted" style="margin:4px 0">― お店の定番 ―</p>' + std.map(presetCardHtml).join("");
   if (concept.length) html += '<p class="muted" style="margin:4px 0">― 推し概念 ―</p>' + concept.map(presetCardHtml).join("");
   if (mine.length) html += '<p class="muted" style="margin:4px 0">― 自分のおすすめ ―</p>' + mine.map(presetCardHtml).join("");
-  if (!std.length && !concept.length && !mine.length) html += '<div class="card"><p class="muted">自分のミックスはまだ登録がありません。「＋ おすすめミックスを追加」から、お店の定番や自分の鉄板を登録できます。推し診断の結果もここに保存できます。</p></div>';
+  if (PRESET_Q && !net.length && !std.length && !concept.length && !mine.length) html = '<div class="card"><p class="muted">「' + esc(PRESET_Q) + '」に合うミックスは見つかりませんでした。</p></div>';
+  if (!PRESET_Q && !state.presets.length) html += '<div class="card"><p class="muted">自分のミックスはまだ登録がありません。「＋ おすすめミックスを追加」から、お店の定番や自分の鉄板を登録できます。推し診断の結果もここに保存できます。</p></div>';
   var wrap = document.getElementById("preset-list");
   wrap.innerHTML = html;
   wrap.querySelectorAll("button[data-use]").forEach(function(b) {
@@ -567,7 +579,15 @@ var NET_MIXES = [
   NM("net11", "ダブルアップル×シナモン×バニラ（5:2:3）", [["ダブルアップル","Al Fakher",6.5],["シナモン","Al Fakher",2.5],["バニラ","Al Fakher",4]], "水煙庵の『濃厚な大人のデザート』アレンジ。焼き菓子風に寄せる派生レシピ。"),
   NM("net12", "Love 66×レモン（7:3）", [["Love 66","Adalya",9],["レモン","Al Fakher",4]], "水煙庵のLove66レビューより。レモンで爽快感MAXに寄せる派生。バニラ8:2にすると濃厚デザート風。"),
   NM("net13", "バニラ×ミルク×キャラメル（4:3:3）", [["バニラ","Al Fakher",5],["ミルク","Debaj",4],["キャラメル","Starbuzz",4]], "BEYOND VAPE JAPANの甘めレシピ。甘いフレーバーだけで固めた甘党向け。"),
-  NM("net14", "スタバ風ピンキーラテ", [["ピンキー","Azure",6],["ミルク","Debaj",4]], "シーシャ店ばんびえんのスタッフnoteより。ピンキー（ピンクグレープフルーツ＋ストロベリー＋ラズベリー）をミルクでラテ風に。")
+  NM("net14", "スタバ風ピンキーラテ", [["ピンキー","Azure",6],["ミルク","Debaj",4]], "シーシャ店ばんびえんのスタッフnoteより。ピンキー（ピンクグレープフルーツ＋ストロベリー＋ラズベリー）をミルクでラテ風に。"),
+  NM("net15", "クリームソーダ風", [["ソラーナビーチ","Azure",5],["ミルク","Debaj",5],["ジンジャーエール","Afzal",2.5]], "ばんびえんのスタッフnoteより（比率4:4:2をグラム換算）。ソラーナビーチはかき氷のメロンシロップ味。ミルクの量を減らさないのがコツだそう。"),
+  NM("net16", "メロンクリームソーダ風（手軽版）", [["メロン","Dozaj",5],["ミルク","Debaj",3],["バニラ","Al Fakher",2],["アイス","Dozaj",2],["ライム","Al Fakher",1]], "恵比寿RIMEのnoteより。少ない材料で作る手軽版メロンクリームソーダ。甘さを足すなら練乳も。分量は目安です。"),
+  NM("net17", "ダブルアップル×シナモン×キャラメル（4:3:3）", [["ダブルアップル","Al Fakher",5],["シナモン","Al Fakher",4],["キャラメル","Starbuzz",4]], "BEYOND VAPE JAPANの『スパイス系の定番人気』。リコリス的な甘さ＋お菓子のような甘み＋スパイス感。"),
+  NM("net18", "Love 66×バニラ（8:2）", [["Love 66","Adalya",10.5],["バニラ","Al Fakher",2.5]], "水煙庵のLove66レビューより。バニラで濃厚デザート風に寄せる派生。"),
+  NM("net19", "チョコレート×ストロベリー（6:4）", [["チョコレート","Fumari",8],["ストロベリー","Fumari",5]], "BEYOND VAPE JAPANの甘め定番。まるでデザートのような味わい。"),
+  NM("net20", "苺ミルクティー", [["アールグレイ","DeCloud",5],["ミルク","Debaj",5],["ストロベリー","Dozaj",3]], "モクログのトレンド記事より。ロイヤルミルクティーにストロベリーを足した派生。分量は目安です。"),
+  NM("net21", "ティラミス×カプチーノ×カルダモン（6:3:1）", [["ティラミス","JiBiAR",8],["カプチーノ","Al Fakher",4],["カルダモン","Al Fakher",1]], "水煙庵のJiBiARティラミスレビューに載っていた派生。カルダモンのスパイスが効いた大人味。"),
+  NM("net22", "ピンキーケイン", [["ピンキー","Azure",7],["ケーンミント","Tangiers",3]], "ばんびえんのスタッフnoteより（グラム通り）。ピンキーの甘酸っぱさにケーンミントの強い清涼感。")
 ];
 
 /* ========= 推しフレーバー診断 ========= */
@@ -656,6 +676,7 @@ function diagnoseOshi() {
 document.getElementById("btn-oshi").addEventListener("click", diagnoseOshi);
 
 document.getElementById("search").addEventListener("input", function(ev){ filter.query = ev.target.value.trim(); renderList(); });
+document.getElementById("preset-search").addEventListener("input", function(ev){ PRESET_Q = ev.target.value.trim(); renderPresets(); });
 document.getElementById("btn-fav-only").addEventListener("click", function() {
   filter.favOnly = !filter.favOnly;
   this.textContent = filter.favOnly ? "お気に入りだけ（表示中）" : "お気に入りだけ";
@@ -784,8 +805,8 @@ function entryMatches(f) {
   if (CF.nic === "yes" && f.nic !== 1) return false;
   if (CF.nic === "no" && f.nic !== 0) return false;
   if (CF.q) {
-    var hay = (f.label + " " + f.en + " " + f.brand).toLowerCase();
-    if (hay.indexOf(CF.q.toLowerCase()) < 0) return false;
+    var hay = normQ(f.label + " " + f.en + " " + f.brand);
+    if (hay.indexOf(normQ(CF.q)) < 0) return false;
   }
   return true;
 }
