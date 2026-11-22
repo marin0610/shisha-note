@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>シーシャノート｜フレーバーミックス記録</title>
+<meta name="description" content="シーシャのフレーバーを選んで、グラム数・味のメモ・雰囲気を記録できるミックス記録アプリ。お気に入りの配合を再現できます。">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: "Hiragino Sans", "Noto Sans JP", sans-serif; background: #17142b; color: #ece9f7; }
+  header { position: sticky; top: 0; z-index: 10; background: #221d42; padding: 12px 16px; display: flex; align-items: center; gap: 10px; box-shadow: 0 2px 10px rgba(0,0,0,.4); }
+  header h1 { font-size: 18px; margin: 0; color: #f5d9a8; }
+  header .tag { font-size: 11px; color: #b9b2d9; }
+  header button { margin-left: auto; background: rgba(255,255,255,.12); color: #fff; border: 1px solid rgba(255,255,255,.35); border-radius: 8px; padding: 6px 12px; font-size: 13px; cursor: pointer; }
+  main { max-width: 760px; margin: 0 auto; padding: 16px 12px 48px; }
+  .card { background: #241f47; border: 1px solid #372f66; border-radius: 14px; padding: 16px; margin-bottom: 14px; }
+  .card h2 { font-size: 16px; margin: 0 0 8px; color: #f5d9a8; }
+  .muted { color: #a79fd0; font-size: 13px; line-height: 1.6; }
+  .rec-title { font-size: 17px; font-weight: 700; }
+  .badges { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+  .badge { font-size: 12px; background: #372f66; color: #d9d3f5; border-radius: 999px; padding: 3px 10px; }
+  .badge.vibe { background: #4a2b52; color: #f3c6e8; }
+  .ratio-bar { display: flex; height: 14px; border-radius: 999px; overflow: hidden; margin: 10px 0 4px; background: #17142b; }
+  .ratio-bar > div { height: 100%; }
+  .flavor-line { font-size: 14px; line-height: 1.7; }
+  .flavor-line .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; }
+  .stars { color: #f5c542; font-size: 15px; letter-spacing: 2px; }
+  .stars .off { color: #554d80; }
+  button.primary { background: #c98a2d; color: #fff; border: none; border-radius: 10px; padding: 12px; font-size: 15px; font-weight: 700; cursor: pointer; width: 100%; }
+  button.sub { background: #2d2760; color: #ece9f7; border: 1px solid #554d99; border-radius: 10px; padding: 9px 14px; font-size: 14px; font-weight: 700; cursor: pointer; }
+  button.danger { background: transparent; color: #f0a3a3; border: 1px solid #7a4040; border-radius: 10px; padding: 9px 14px; font-size: 13px; cursor: pointer; }
+  button.fav { background: transparent; border: none; font-size: 20px; cursor: pointer; color: #554d80; }
+  button.fav.on { color: #f5c542; }
+  .row-btns { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+  input[type="text"], input[type="number"], input[type="date"], textarea, select { font-size: 14px; padding: 9px; border: 1px solid #554d99; border-radius: 8px; width: 100%; background: #17142b; color: #ece9f7; }
+  textarea { min-height: 70px; resize: vertical; }
+  label { font-size: 13px; font-weight: 700; display: block; margin: 12px 0 4px; color: #d9d3f5; }
+  .hidden { display: none !important; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0; }
+  .chip { font-size: 13px; background: #2d2760; color: #d9d3f5; border: 1px solid #554d99; border-radius: 999px; padding: 6px 12px; cursor: pointer; }
+  .chip.on { background: #c98a2d; border-color: #c98a2d; color: #fff; font-weight: 700; }
+  .chip.vibe.on { background: #a03d7d; border-color: #a03d7d; }
+  .genre { font-size: 13px; font-weight: 700; color: #f5d9a8; margin: 12px 0 2px; }
+  .gram-row { display: flex; align-items: center; gap: 8px; background: #2d2760; border-radius: 10px; padding: 8px 10px; margin: 6px 0; }
+  .gram-row .name { flex: 1; font-size: 14px; font-weight: 700; }
+  .gram-row input { width: 84px; }
+  .gram-row .pct { font-size: 13px; color: #f5d9a8; width: 52px; text-align: right; }
+  .gram-row button { background: transparent; border: none; color: #f0a3a3; font-size: 16px; cursor: pointer; }
+  .total-line { font-size: 15px; font-weight: 700; margin-top: 8px; }
+  .star-btns button { background: transparent; border: none; font-size: 26px; color: #554d80; cursor: pointer; padding: 2px; }
+  .star-btns button.on { color: #f5c542; }
+  .toast { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%); background: #f5d9a8; color: #26233a; padding: 10px 18px; border-radius: 999px; font-size: 14px; font-weight: 700; z-index: 50; box-shadow: 0 4px 14px rgba(0,0,0,.4); }
+  footer { text-align: center; color: #7d76ab; font-size: 12px; padding: 0 16px 30px; line-height: 1.7; }
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>シーシャノート</h1>
+    <div class="tag">フレーバーミックスの記録帳</div>
+  </div>
+  <button id="btn-home" class="hidden">一覧へ</button>
+</header>
+<main>
+  <!-- 一覧 -->
+  <section id="view-list">
+    <div class="card">
+      <h2>ミックスの記録</h2>
+      <p class="muted">フレーバーとグラム数を記録しておくと、「あの日のあの配合」がいつでも再現できます。味のメモと雰囲気も一緒にどうぞ。記録はこの端末の中だけに保存されます。</p>
+      <p class="muted" id="stats-line"></p>
+      <button class="primary" id="btn-new">＋ 新しいミックスを記録</button>
+      <label for="search">検索（タイトル・フレーバー・メモ）</label>
+      <input type="text" id="search" placeholder="例：ミント、甘い、ブルーベリー">
+      <label>雰囲気で絞り込み</label>
+      <div class="chips" id="filter-vibes"></div>
+      <div class="row-btns">
+        <button class="sub" id="btn-fav-only">お気に入りだけ</button>
+      </div>
+    </div>
+    <div id="record-list"></div>
+  </section>
+
+  <!-- 編集 -->
+  <section id="view-edit" class="hidden">
+    <div class="card">
+      <h2 id="edit-title">新しいミックス</h2>
+      <label for="f-title">タイトル</label>
+      <input type="text" id="f-title" placeholder="例：ブルーベリー×ミント（空欄ならフレーバー名から自動）">
+      <label for="f-date">日付</label>
+      <input type="date" id="f-date">
+      <label for="f-place">場所（任意）</label>
+      <input type="text" id="f-place" placeholder="例：MOOCA、自宅、友達の家">
+      <label>フレーバーを選ぶ</label>
+      <input type="text" id="flavor-search" placeholder="フレーバー検索">
+      <div id="flavor-catalog"></div>
+      <label for="f-custom">フレーバーを追加（カタログにないもの）</label>
+      <div style="display:flex;gap:8px">
+        <input type="text" id="f-custom" placeholder="例：限定フレーバー名">
+        <button class="sub" id="btn-add-custom" style="white-space:nowrap">追加</button>
+      </div>
+      <label>配合（グラム数）</label>
+      <div id="gram-rows"></div>
+      <div class="ratio-bar" id="edit-ratio"></div>
+      <div class="total-line" id="edit-total">合計 0g</div>
+      <p class="muted">割合はグラム数から自動で計算されます。</p>
+      <label>評価</label>
+      <div class="star-btns" id="star-btns"></div>
+      <label>雰囲気タグ</label>
+      <div class="chips" id="edit-vibes"></div>
+      <label for="f-taste">味のメモ</label>
+      <textarea id="f-taste" placeholder="例：最初はベリーの甘さ、後半ミントでスッと締まる。煙は重め。"></textarea>
+      <label for="f-vibe">雰囲気メモ</label>
+      <textarea id="f-vibe" placeholder="例：夜のチルい時間にぴったり。友達と話しながらゆっくり吸いたい感じ。"></textarea>
+      <div class="row-btns">
+        <button class="primary" id="btn-save" style="flex:1">保存する</button>
+        <button class="danger hidden" id="btn-delete">削除</button>
+      </div>
+      <p class="muted" id="save-status"></p>
+    </div>
+  </section>
+</main>
+<footer>シーシャノート｜記録はすべてこの端末の中で保存されます。</footer>
+<div class="toast hidden" id="toast"></div>
+<script>
+"use strict";
+/* ========= データ ========= */
+var FLAVOR_GENRES = [
+  { genre: "フルーツ系", flavors: ["ダブルアップル", "青りんご", "ブルーベリー", "ラズベリー", "ストロベリー", "チェリー", "ピーチ", "マンゴー", "パイナップル", "スイカ", "メロン", "グレープ", "レモン", "ライム", "オレンジ", "キウイ", "パッションフルーツ", "グアバ", "洋なし", "ゆず"] },
+  { genre: "清涼・定番系", flavors: ["ミント", "アイスミント", "ブルーミスト", "スペアミント", "ユーカリ", "メンソール"] },
+  { genre: "スイーツ系", flavors: ["バニラ", "チョコレート", "キャラメル", "はちみつ", "ココナッツ", "アーモンド", "バブルガム", "コットンキャンディ", "プリン", "チーズケーキ"] },
+  { genre: "ドリンク系", flavors: ["コーラ", "エナジードリンク", "コーヒー", "アールグレイ", "抹茶", "ラムネ", "ヨーグルト"] },
+  { genre: "ハーブ・スパイス系", flavors: ["シナモン", "カルダモン", "ローズ", "ジャスミン", "ラベンダー", "バジル", "ジンジャー"] }
+];
+var VIBES = ["リラックス", "すっきり", "甘い", "フルーティー", "重め", "軽め", "爽やか", "大人っぽい", "華やか", "落ち着く", "パーティー向き", "まったり"];
+var PALETTE = ["#e07a5f", "#81b29a", "#f2cc8f", "#6d8ea0", "#b565a7", "#88c0d0", "#d4a373", "#95d5b2", "#f28482", "#84a98c", "#e5989b", "#6a8eae"];
+function flavorColor(name) {
+  var h = 0; for (var i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) % 997;
+  return PALETTE[h % PALETTE.length];
+}
+var SAMPLES = [
+  { id: "sample1", title: "ブルーベリー×ミント", date: "2026-11-20", place: "サンプル",
+    items: [{ name: "ブルーベリー", grams: 12 }, { name: "ミント", grams: 6 }],
+    taste: "ベリーの甘さが先に来て、ミントでスッと締まる。王道だけど間違いない組み合わせ。", vibeText: "夜のチルい時間に。友達と話しながらゆっくり吸いたい。",
+    vibes: ["リラックス", "すっきり", "フルーティー"], rating: 5, fav: true, sample: true, createdAt: 1 },
+  { id: "sample2", title: "ダブルアップル×シナモン", date: "2026-11-15", place: "サンプル",
+    items: [{ name: "ダブルアップル", grams: 14 }, { name: "シナモン", grams: 3 }],
+    taste: "アップルの甘さにシナモンのスパイスが効いて、アップルパイみたいな味。少し重め。", vibeText: "寒い日に合う、落ち着いた大人っぽい雰囲気。",
+    vibes: ["甘い", "重め", "大人っぽい"], rating: 4, fav: false, sample: true, createdAt: 2 }
+];
+
+/* ========= 状態 ========= */
+var LS_KEY = "shisha-note-v1";
+var state = { records: null, customFlavors: [] };
+try {
+  var raw = localStorage.getItem(LS_KEY);
+  if (raw) { var p = JSON.parse(raw); if (p && typeof p === "object") state = Object.assign(state, p); }
+} catch (e) {}
+if (!Array.isArray(state.records)) { state.records = SAMPLES.slice(); save(); }
+function save() { try { localStorage.setItem(LS_KEY, JSON.stringify(state)); } catch (e) {} }
+function esc(s) { return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
+function toast(msg) { var t = document.getElementById("toast"); t.textContent = msg; t.classList.remove("hidden"); setTimeout(function(){ t.classList.add("hidden"); }, 2400); }
+function allFlavorNames() {
+  var names = [];
+  FLAVOR_GENRES.forEach(function(g){ g.flavors.forEach(function(f){ names.push(f); }); });
+  state.customFlavors.forEach(function(f){ if (names.indexOf(f) < 0) names.push(f); });
+  return names;
+}
+
+/* ========= 計算（純粋関数） ========= */
+function totalGrams(items) { return items.reduce(function(s, it){ return s + (parseFloat(it.grams) || 0); }, 0); }
+function ratioPct(items, i) {
+  var t = totalGrams(items);
+  if (!t) return 0;
+  return Math.round((parseFloat(items[i].grams) || 0) / t * 100);
+}
+function recordMatches(rec, query, vibe, favOnly) {
+  if (favOnly && !rec.fav) return false;
+  if (vibe && (rec.vibes || []).indexOf(vibe) < 0) return false;
+  if (query) {
+    var hay = [rec.title, rec.place || "", rec.taste || "", rec.vibeText || ""].concat(rec.items.map(function(it){ return it.name; })).join(" ").toLowerCase();
+    if (hay.indexOf(query.toLowerCase()) < 0) return false;
+  }
+  return true;
+}
+function starsText(r) {
+  var s = "";
+  for (var i = 1; i <= 5; i++) s += i <= r ? "★" : '<span class="off">★</span>';
+  return s;
+}
+function ratioBarHtml(items) {
+  var t = totalGrams(items);
+  if (!t) return "";
+  return items.map(function(it) {
+    var pct = (parseFloat(it.grams) || 0) / t * 100;
+    return '<div style="width:' + pct + '%;background:' + flavorColor(it.name) + '"></div>';
+  }).join("");
+}
+function flavorLinesHtml(items) {
+  return items.map(function(it, i) {
+    return '<div class="flavor-line"><span class="dot" style="background:' + flavorColor(it.name) + '"></span>' + esc(it.name) + '　' + esc(it.grams) + 'g（' + ratioPct(items, i) + '%）</div>';
+  }).join("");
+}
+
+/* ========= 一覧 ========= */
+var filter = { query: "", vibe: null, favOnly: false };
+function renderList() {
+  var recs = state.records.filter(function(r){ return recordMatches(r, filter.query, filter.vibe, filter.favOnly); });
+  recs.sort(function(a, b){ return (b.date || "").localeCompare(a.date || "") || (b.createdAt || 0) - (a.createdAt || 0); });
+  document.getElementById("stats-line").textContent = "記録は全" + state.records.length + "件" + (filter.query || filter.vibe || filter.favOnly ? "（絞り込みで " + recs.length + " 件表示）" : "");
+  var wrap = document.getElementById("record-list");
+  if (!recs.length) { wrap.innerHTML = '<div class="card"><p class="muted">記録がありません。最初のミックスを記録してみてください。</p></div>'; return; }
+  wrap.innerHTML = recs.map(function(r) {
+    return '<div class="card">'
+      + '<div style="display:flex;align-items:flex-start;gap:8px"><div class="rec-title" style="flex:1">' + esc(r.title) + '</div>'
+      + '<button class="fav' + (r.fav ? " on" : "") + '" data-fav="' + r.id + '">★</button></div>'
+      + '<div class="badges"><span class="badge">' + esc(r.date || "") + '</span>'
+      + (r.place ? '<span class="badge">' + esc(r.place) + '</span>' : '')
+      + '<span class="badge">合計 ' + totalGrams(r.items) + 'g</span>'
+      + (r.sample ? '<span class="badge">サンプル</span>' : '') + '</div>'
+      + flavorLinesHtml(r.items)
+      + '<div class="ratio-bar">' + ratioBarHtml(r.items) + '</div>'
+      + '<div class="stars">' + starsText(r.rating || 0) + '</div>'
+      + ((r.vibes || []).length ? '<div class="badges">' + r.vibes.map(function(v){ return '<span class="badge vibe">' + esc(v) + '</span>'; }).join("") + '</div>' : '')
+      + (r.taste ? '<p class="muted">味：' + esc(r.taste) + '</p>' : '')
+      + (r.vibeText ? '<p class="muted">雰囲気：' + esc(r.vibeText) + '</p>' : '')
+      + '<div class="row-btns"><button class="sub" data-edit="' + r.id + '">編集する</button></div>'
+      + '</div>';
+  }).join("");
+  wrap.querySelectorAll("button[data-fav]").forEach(function(b) {
+    b.addEventListener("click", function() {
+      var rec = state.records.find(function(r){ return r.id === b.getAttribute("data-fav"); });
+      if (rec) { rec.fav = !rec.fav; save(); renderList(); }
+    });
+  });
+  wrap.querySelectorAll("button[data-edit]").forEach(function(b) {
+    b.addEventListener("click", function(){ openEditor(b.getAttribute("data-edit")); });
+  });
+}
+document.getElementById("search").addEventListener("input", function(ev){ filter.query = ev.target.value.trim(); renderList(); });
+document.getElementById("btn-fav-only").addEventListener("click", function() {
+  filter.favOnly = !filter.favOnly;
+  this.textContent = filter.favOnly ? "お気に入りだけ（表示中）" : "お気に入りだけ";
+  renderList();
+});
+function renderFilterVibes() {
+  document.getElementById("filter-vibes").innerHTML = VIBES.map(function(v) {
+    return '<button class="chip vibe' + (filter.vibe === v ? " on" : "") + '" data-v="' + esc(v) + '">' + esc(v) + '</button>';
+  }).join("");
+  document.querySelectorAll("#filter-vibes .chip").forEach(function(c) {
+    c.addEventListener("click", function() {
+      var v = c.getAttribute("data-v");
+      filter.vibe = filter.vibe === v ? null : v;
+      renderFilterVibes(); renderList();
+    });
+  });
+}
+
+/* ========= 編集 ========= */
+var E = null;
+function todayStr() { var d = new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
+function showView(edit) {
+  document.getElementById("view-list").classList.toggle("hidden", edit);
+  document.getElementById("view-edit").classList.toggle("hidden", !edit);
+  document.getElementById("btn-home").classList.toggle("hidden", !edit);
+  window.scrollTo(0, 0);
+}
+function openEditor(id) {
+  var rec = id ? state.records.find(function(r){ return r.id === id; }) : null;
+  E = {
+    id: rec ? rec.id : null,
+    items: rec ? rec.items.map(function(it){ return { name: it.name, grams: it.grams }; }) : [],
+    vibes: rec ? (rec.vibes || []).slice() : [],
+    rating: rec ? (rec.rating || 0) : 0,
+    fav: rec ? !!rec.fav : false, sample: rec ? !!rec.sample : false
+  };
+  document.getElementById("edit-title").textContent = rec ? "記録を編集" : "新しいミックス";
+  document.getElementById("f-title").value = rec ? rec.title : "";
+  document.getElementById("f-date").value = rec ? (rec.date || todayStr()) : todayStr();
+  document.getElementById("f-place").value = rec ? (rec.place || "") : "";
+  document.getElementById("f-taste").value = rec ? (rec.taste || "") : "";
+  document.getElementById("f-vibe").value = rec ? (rec.vibeText || "") : "";
+  document.getElementById("btn-delete").classList.toggle("hidden", !rec);
+  document.getElementById("save-status").textContent = "";
+  renderCatalog(""); renderGramRows(); renderEditVibes(); renderStars();
+  showView(true);
+}
+function renderCatalog(q) {
+  var html = "";
+  FLAVOR_GENRES.forEach(function(g) {
+    var list = g.flavors.filter(function(f){ return !q || f.indexOf(q) >= 0; });
+    if (!list.length) return;
+    html += '<div class="genre">' + esc(g.genre) + '</div><div class="chips">'
+      + list.map(function(f) {
+        var on = E.items.some(function(it){ return it.name === f; });
+        return '<button class="chip' + (on ? " on" : "") + '" data-flavor="' + esc(f) + '">' + esc(f) + '</button>';
+      }).join("") + '</div>';
+  });
+  var customs = state.customFlavors.filter(function(f){ return !q || f.indexOf(q) >= 0; });
+  if (customs.length) {
+    html += '<div class="genre">追加したフレーバー</div><div class="chips">'
+      + customs.map(function(f) {
+        var on = E.items.some(function(it){ return it.name === f; });
+        return '<button class="chip' + (on ? " on" : "") + '" data-flavor="' + esc(f) + '">' + esc(f) + '</button>';
+      }).join("") + '</div>';
+  }
+  var el = document.getElementById("flavor-catalog");
+  el.innerHTML = html || '<p class="muted">見つかりませんでした。下の「フレーバーを追加」から追加できます。</p>';
+  el.querySelectorAll("button[data-flavor]").forEach(function(b) {
+    b.addEventListener("click", function() {
+      var name = b.getAttribute("data-flavor");
+      var idx = E.items.findIndex(function(it){ return it.name === name; });
+      if (idx >= 0) E.items.splice(idx, 1);
+      else E.items.push({ name: name, grams: 10 });
+      renderCatalog(document.getElementById("flavor-search").value.trim());
+      renderGramRows();
+    });
+  });
+}
+document.getElementById("flavor-search").addEventListener("input", function(ev){ renderCatalog(ev.target.value.trim()); });
+document.getElementById("btn-add-custom").addEventListener("click", function() {
+  var v = document.getElementById("f-custom").value.trim();
+  if (!v) return;
+  if (allFlavorNames().indexOf(v) < 0) { state.customFlavors.push(v); save(); }
+  if (!E.items.some(function(it){ return it.name === v; })) E.items.push({ name: v, grams: 10 });
+  document.getElementById("f-custom").value = "";
+  renderCatalog(document.getElementById("flavor-search").value.trim());
+  renderGramRows();
+});
+function renderGramRows() {
+  var wrap = document.getElementById("gram-rows");
+  if (!E.items.length) { wrap.innerHTML = '<p class="muted">まだフレーバーが選ばれていません。</p>'; }
+  else {
+    wrap.innerHTML = E.items.map(function(it, i) {
+      return '<div class="gram-row"><span class="dot" style="display:inline-block;width:10px;height:10px;border-radius:50%;background:' + flavorColor(it.name) + '"></span>'
+        + '<span class="name">' + esc(it.name) + '</span>'
+        + '<input type="number" min="0" step="0.5" value="' + esc(it.grams) + '" data-gram="' + i + '"><span>g</span>'
+        + '<span class="pct">' + ratioPct(E.items, i) + '%</span>'
+        + '<button data-remove="' + i + '">✕</button></div>';
+    }).join("");
+    wrap.querySelectorAll("input[data-gram]").forEach(function(inp) {
+      inp.addEventListener("input", function() {
+        E.items[parseInt(inp.getAttribute("data-gram"), 10)].grams = parseFloat(inp.value) || 0;
+        renderTotalsOnly();
+      });
+    });
+    wrap.querySelectorAll("button[data-remove]").forEach(function(b) {
+      b.addEventListener("click", function() {
+        E.items.splice(parseInt(b.getAttribute("data-remove"), 10), 1);
+        renderCatalog(document.getElementById("flavor-search").value.trim());
+        renderGramRows();
+      });
+    });
+  }
+  renderTotalsOnly();
+}
+function renderTotalsOnly() {
+  document.getElementById("edit-total").textContent = "合計 " + totalGrams(E.items) + "g";
+  document.getElementById("edit-ratio").innerHTML = ratioBarHtml(E.items);
+  document.querySelectorAll("#gram-rows .pct").forEach(function(el, i){ el.textContent = ratioPct(E.items, i) + "%"; });
+}
+function renderEditVibes() {
+  document.getElementById("edit-vibes").innerHTML = VIBES.map(function(v) {
+    return '<button class="chip vibe' + (E.vibes.indexOf(v) >= 0 ? " on" : "") + '" data-v="' + esc(v) + '">' + esc(v) + '</button>';
+  }).join("");
+  document.querySelectorAll("#edit-vibes .chip").forEach(function(c) {
+    c.addEventListener("click", function() {
+      var v = c.getAttribute("data-v");
+      var i = E.vibes.indexOf(v);
+      if (i >= 0) E.vibes.splice(i, 1); else E.vibes.push(v);
+      renderEditVibes();
+    });
+  });
+}
+function renderStars() {
+  document.getElementById("star-btns").innerHTML = [1, 2, 3, 4, 5].map(function(n) {
+    return '<button data-star="' + n + '" class="' + (E.rating >= n ? "on" : "") + '">★</button>';
+  }).join("");
+  document.querySelectorAll("#star-btns button").forEach(function(b) {
+    b.addEventListener("click", function(){ E.rating = parseInt(b.getAttribute("data-star"), 10); renderStars(); });
+  });
+}
+document.getElementById("btn-save").addEventListener("click", function() {
+  var st = document.getElementById("save-status");
+  var items = E.items.filter(function(it){ return (parseFloat(it.grams) || 0) > 0; });
+  if (!items.length) { st.textContent = "フレーバーを1つ以上選んで、グラム数を入れてください。"; return; }
+  var title = document.getElementById("f-title").value.trim();
+  if (!title) title = items.map(function(it){ return it.name; }).join("×");
+  var rec = {
+    id: E.id || "r" + Date.now(),
+    title: title,
+    date: document.getElementById("f-date").value || todayStr(),
+    place: document.getElementById("f-place").value.trim(),
+    items: items,
+    taste: document.getElementById("f-taste").value.trim(),
+    vibeText: document.getElementById("f-vibe").value.trim(),
+    vibes: E.vibes.slice(),
+    rating: E.rating,
+    fav: E.fav, sample: E.sample,
+    createdAt: E.id ? (state.records.find(function(r){ return r.id === E.id; }) || {}).createdAt || Date.now() : Date.now()
+  };
+  if (E.id) {
+    var idx = state.records.findIndex(function(r){ return r.id === E.id; });
+    if (idx >= 0) state.records[idx] = rec;
+  } else state.records.push(rec);
+  save(); E = null;
+  renderList(); showView(false);
+  toast("保存しました");
+});
+document.getElementById("btn-delete").addEventListener("click", function() {
+  if (!E || !E.id) return;
+  if (!confirm("この記録を削除しますか？")) return;
+  state.records = state.records.filter(function(r){ return r.id !== E.id; });
+  save(); E = null;
+  renderList(); showView(false);
+  toast("削除しました");
+});
+document.getElementById("btn-new").addEventListener("click", function(){ openEditor(null); });
+document.getElementById("btn-home").addEventListener("click", function(){ E = null; renderList(); showView(false); });
+
+/* ========= 初期化 ========= */
+renderFilterVibes();
+renderList();
+</script>
+</body>
+</html>
