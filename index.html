@@ -56,6 +56,15 @@
   .star-btns button.on { color: #f5c542; }
   .toast { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%); background: #f5d9a8; color: #26233a; padding: 10px 18px; border-radius: 999px; font-size: 14px; font-weight: 700; z-index: 50; box-shadow: 0 4px 14px rgba(0,0,0,.4); }
   footer { text-align: center; color: #7d76ab; font-size: 12px; padding: 0 16px 30px; line-height: 1.7; }
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.cal-wd { text-align: center; font-size: 12px; opacity: .7; padding: 2px 0; }
+.cal-wd.sun { color: #ff9d9d; opacity: 1; } .cal-wd.sat { color: #9db8ff; opacity: 1; }
+.cal-cell { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.12); border-radius: 10px; padding: 5px 2px; color: inherit; display: flex; flex-direction: column; align-items: center; gap: 1px; cursor: pointer; font-family: inherit; }
+.cal-cell.today { border-color: #f5d9a8; }
+.cal-cell.sel { background: #f5d9a8; color: #241a08; }
+.cal-d { font-size: 14px; font-weight: 700; }
+.cal-c { font-size: 10px; }
+.cal-c.none { opacity: .25; }
 </style>
 </head>
 <body>
@@ -81,10 +90,11 @@
       <div class="chips" id="filter-vibes"></div>
       <div class="row-btns">
         <button class="sub" id="btn-fav-only">お気に入りだけ</button>
+        <button class="sub" id="btn-calendar">📅 カレンダーで見る</button>
       </div>
     </div>
     <h2 style="color:#f5d9a8;font-size:16px;margin:18px 0 8px">おすすめミックス</h2>
-    <p class="muted">自分の鉄板配合を登録しておく欄です。「この配合で記録する」ですぐ記録に移せます。</p>
+    <p class="muted">自分の鉄板配合を登録しておく欄です。「この配合で記録する」を押すと、その配合がコピーされて、今日の日付の新しい記録として開きます。味メモなどを書いて保存すれば、その日の記録になります（おすすめ自体は変わりません）。</p>
     <div id="preset-list"></div>
     <div class="row-btns" style="margin-bottom:16px">
       <button class="sub" id="btn-new-preset">＋ おすすめミックスを追加</button>
@@ -93,16 +103,32 @@
     <div id="record-list"></div>
   </section>
 
+  <!-- カレンダー -->
+  <section id="view-calendar" class="hidden">
+    <div class="card">
+      <h2>カレンダー</h2>
+      <div class="row-btns" style="justify-content:space-between">
+        <button class="sub" id="cal-prev">← 前の月</button>
+        <strong id="cal-title"></strong>
+        <button class="sub" id="cal-next">次の月 →</button>
+      </div>
+      <div class="cal-grid" id="cal-grid" style="margin-top:10px"></div>
+    </div>
+    <h2 id="cal-day-title" style="color:#f5d9a8;font-size:16px;margin:18px 0 8px"></h2>
+    <div id="cal-records"></div>
+  </section>
+
   <!-- ヘルプ -->
   <section id="view-help" class="hidden">
     <div class="card">
       <h2>使い方</h2>
       <p class="muted"><b style="color:#f5d9a8">記録を作る</b><br>「＋ 新しいミックスを記録」から、フレーバーを選んでグラム数を入れるだけ。割合（％）は自動で計算されます。味のメモ・雰囲気メモ・星評価も一緒に残せます。</p>
-      <p class="muted"><b style="color:#f5d9a8">おすすめミックス</b><br>自分の鉄板配合を先に登録しておく欄です。「お店の定番」と「自分のおすすめ」の2種類があり、お店の定番はお店ごとに違うので、店名と一緒に自分で登録する形式です。複数のお店で働く人は、お店ごとに定番を分けて登録すると、その日のシフトのお店の配合がすぐ出せます。おすすめの「この配合で記録する」を押すと、今日の日付で記録に移せます。</p>
+      <p class="muted"><b style="color:#f5d9a8">おすすめミックス</b><br>自分の鉄板配合を先に登録しておく欄です。「お店の定番」と「自分のおすすめ」の2種類があり、お店の定番はお店ごとに違うので、店名と一緒に自分で登録する形式です。複数のお店で働く人は、お店ごとに定番を分けて登録すると、その日のシフトのお店の配合がすぐ出せます。おすすめの「この配合で記録する」を押すと、その配合がコピーされて、今日の日付の新しい記録の画面が開きます。味メモや雰囲気メモを書いて保存すると、その日の記録として残ります。おすすめに登録した配合そのものは変わりません。</p>
       <p class="muted"><b style="color:#f5d9a8">サイズ違い</b><br>サイズの名前はお店によって違うので、サイズ名は自由に入力できます（レギュラー／ロングなど、そのお店の呼び方でOK）。編集画面の「サイズ違いを登録」から、今の配合をコピーして別サイズとして登録できます。グラム数は倍率（そのまま／×0.7／×1.4）で換算して開くので、あとは微調整するだけです。サイズで割合自体が変わる配合も、そのまま直して保存できます。</p>
       <p class="muted"><b style="color:#f5d9a8">グラム数と割合</b><br>グラム数は0.1g単位まで入力できます（例：12.5g）。割合は入力したグラム数から自動計算されるので、細かい数字でも大丈夫です。</p>
       <p class="muted"><b style="color:#f5d9a8">相性サジェスト</b><br>フレーバーを選ぶと「このフレーバーに合う候補」が理由つきで出ます。タップすると配合に追加されます。新しいミックスを考えるヒントにどうぞ。</p>
       <p class="muted"><b style="color:#f5d9a8">フレーバーを探す</b><br>カタログはブランド別・味の系統別・ニコチンあり／なしで絞り込めます。名前での検索もできます。カタログにないフレーバーは「フレーバーを追加」から自分で足せます。</p>
+      <p class="muted"><b style="color:#f5d9a8">カレンダーと登録時刻</b><br>「カレンダーで見る」から月カレンダーを開くと、記録のある日に件数が出ます。日をタップすると、その日の記録が見られます。「何曜日に作ったやつが良かった」みたいな探し方に便利です。日付には曜日も表示されます。記録を作った時刻は自動で残り、カードに「○:○○ 登録」と出ます（時刻が出ないのは、この機能より前に作られた記録です）。</p>
       <p class="muted"><b style="color:#f5d9a8">保存について</b><br>記録はすべてこの端末の中（ブラウザ）に保存され、外部に送信されません。端末を変えると記録は引き継がれないので注意してください。</p>
       <button class="primary" id="btn-help-close">一覧に戻る</button>
     </div>
@@ -370,33 +396,29 @@ function recordMatches(rec, query, vibe, favOnly) {
 
 /* ========= 一覧 ========= */
 var filter = { query: "", vibe: null, favOnly: false };
-function renderList() {
-  var recs = state.records.filter(function(r){ return recordMatches(r, filter.query, filter.vibe, filter.favOnly); });
-  recs.sort(function(a, b){ return (b.date || "").localeCompare(a.date || "") || (b.createdAt || 0) - (a.createdAt || 0); });
-  document.getElementById("stats-line").textContent = "記録は全" + state.records.length + "件" + (filter.query || filter.vibe || filter.favOnly ? "（絞り込みで " + recs.length + " 件表示）" : "");
-  var wrap = document.getElementById("record-list");
-  if (!recs.length) { wrap.innerHTML = '<div class="card"><p class="muted">記録がありません。最初のミックスを記録してみてください。</p></div>'; return; }
-  wrap.innerHTML = recs.map(function(r) {
-    return '<div class="card">'
-      + '<div style="display:flex;align-items:flex-start;gap:8px"><div class="rec-title" style="flex:1">' + esc(r.title) + '</div>'
-      + '<button class="fav' + (r.fav ? " on" : "") + '" data-fav="' + r.id + '">★</button></div>'
-      + '<div class="badges"><span class="badge">' + esc(r.date || "") + '</span>'
-      + (r.place ? '<span class="badge">' + esc(r.place) + '</span>' : '')
-      + '<span class="badge">合計 ' + fmtG(totalGrams(r.items)) + 'g</span>' + (r.sizeName ? '<span class="badge">サイズ：' + esc(r.sizeName) + '</span>' : '') + nicBadgesHtml(r.items)
-      + (r.sample ? '<span class="badge">サンプル</span>' : '') + '</div>'
-      + flavorLinesHtml(r.items)
-      + '<div class="ratio-bar">' + ratioBarHtml(r.items) + '</div>'
-      + '<div class="stars">' + starsText(r.rating || 0) + '</div>'
-      + ((r.vibes || []).length ? '<div class="badges">' + r.vibes.map(function(v){ return '<span class="badge vibe">' + esc(v) + '</span>'; }).join("") + '</div>' : '')
-      + (r.taste ? '<p class="muted">味：' + esc(r.taste) + '</p>' : '')
-      + (r.vibeText ? '<p class="muted">雰囲気：' + esc(r.vibeText) + '</p>' : '')
-      + '<div class="row-btns"><button class="sub" data-edit="' + r.id + '">編集する</button><button class="sub" data-topreset="' + r.id + '">おすすめに登録</button></div>'
-      + '</div>';
-  }).join("");
+function recordCardHtml(r) {
+  return '<div class="card">'
+    + '<div style="display:flex;align-items:flex-start;gap:8px"><div class="rec-title" style="flex:1">' + esc(r.title) + '</div>'
+    + '<button class="fav' + (r.fav ? " on" : "") + '" data-fav="' + r.id + '">★</button></div>'
+    + '<div class="badges"><span class="badge">' + esc(fmtDate(r.date || "")) + '</span>'
+    + (r.createdAt && r.createdAt > 1000000000000 ? '<span class="badge">' + esc(fmtTime(r.createdAt)) + ' 登録</span>' : '')
+    + (r.place ? '<span class="badge">' + esc(r.place) + '</span>' : '')
+    + '<span class="badge">合計 ' + fmtG(totalGrams(r.items)) + 'g</span>' + (r.sizeName ? '<span class="badge">サイズ：' + esc(r.sizeName) + '</span>' : '') + nicBadgesHtml(r.items)
+    + (r.sample ? '<span class="badge">サンプル</span>' : '') + '</div>'
+    + flavorLinesHtml(r.items)
+    + '<div class="ratio-bar">' + ratioBarHtml(r.items) + '</div>'
+    + '<div class="stars">' + starsText(r.rating || 0) + '</div>'
+    + ((r.vibes || []).length ? '<div class="badges">' + r.vibes.map(function(v){ return '<span class="badge vibe">' + esc(v) + '</span>'; }).join("") + '</div>' : '')
+    + (r.taste ? '<p class="muted">味：' + esc(r.taste) + '</p>' : '')
+    + (r.vibeText ? '<p class="muted">雰囲気：' + esc(r.vibeText) + '</p>' : '')
+    + '<div class="row-btns"><button class="sub" data-edit="' + r.id + '">編集する</button><button class="sub" data-topreset="' + r.id + '">おすすめに登録</button></div>'
+    + '</div>';
+}
+function bindRecordButtons(wrap, rerender) {
   wrap.querySelectorAll("button[data-fav]").forEach(function(b) {
     b.addEventListener("click", function() {
       var rec = state.records.find(function(r){ return r.id === b.getAttribute("data-fav"); });
-      if (rec) { rec.fav = !rec.fav; save(); renderList(); }
+      if (rec) { rec.fav = !rec.fav; save(); rerender(); }
     });
   });
   wrap.querySelectorAll("button[data-edit]").forEach(function(b) { b.addEventListener("click", function(){ openEditor(b.getAttribute("data-edit")); }); });
@@ -408,6 +430,51 @@ function renderList() {
       save(); renderPresets(); toast("おすすめミックスに登録しました");
     });
   });
+}
+function renderList() {
+  var recs = state.records.filter(function(r){ return recordMatches(r, filter.query, filter.vibe, filter.favOnly); });
+  recs.sort(function(a, b){ return (b.date || "").localeCompare(a.date || "") || (b.createdAt || 0) - (a.createdAt || 0); });
+  document.getElementById("stats-line").textContent = "記録は全" + state.records.length + "件" + (filter.query || filter.vibe || filter.favOnly ? "（絞り込みで " + recs.length + " 件表示）" : "");
+  var wrap = document.getElementById("record-list");
+  if (!recs.length) { wrap.innerHTML = '<div class="card"><p class="muted">記録がありません。最初のミックスを記録してみてください。</p></div>'; return; }
+  wrap.innerHTML = recs.map(recordCardHtml).join("");
+  bindRecordButtons(wrap, renderList);
+}
+/* ========= カレンダー ========= */
+var CAL = null;
+function showCalendar() {
+  var now = new Date();
+  CAL = { y: now.getFullYear(), m: now.getMonth(), sel: todayStr() };
+  document.getElementById("view-list").classList.add("hidden");
+  document.getElementById("view-edit").classList.add("hidden");
+  document.getElementById("view-help").classList.add("hidden");
+  document.getElementById("view-calendar").classList.remove("hidden");
+  document.getElementById("btn-home").classList.remove("hidden");
+  window.scrollTo(0, 0);
+  renderCalendar();
+}
+function renderCalendar() {
+  document.getElementById("cal-title").textContent = CAL.y + "年" + (CAL.m + 1) + "月";
+  var startW = new Date(CAL.y, CAL.m, 1).getDay();
+  var lastDay = new Date(CAL.y, CAL.m + 1, 0).getDate();
+  var counts = {};
+  state.records.forEach(function(r){ if (r.date) counts[r.date] = (counts[r.date] || 0) + 1; });
+  var cells = WD.map(function(w, i){ return '<div class="cal-wd' + (i === 0 ? " sun" : i === 6 ? " sat" : "") + '">' + w + '</div>'; }).join("");
+  for (var i = 0; i < startW; i++) cells += '<div></div>';
+  for (var d = 1; d <= lastDay; d++) {
+    var ds = CAL.y + "-" + String(CAL.m + 1).padStart(2, "0") + "-" + String(d).padStart(2, "0");
+    var c = counts[ds] || 0;
+    cells += '<button class="cal-cell' + (ds === todayStr() ? " today" : "") + (ds === CAL.sel ? " sel" : "") + '" data-day="' + ds + '">'
+      + '<span class="cal-d">' + d + '</span>' + (c ? '<span class="cal-c">' + c + '件</span>' : '<span class="cal-c none">・</span>') + '</button>';
+  }
+  document.getElementById("cal-grid").innerHTML = cells;
+  document.querySelectorAll("[data-day]").forEach(function(b) { b.addEventListener("click", function() { CAL.sel = b.getAttribute("data-day"); renderCalendar(); }); });
+  var dayList = state.records.filter(function(r){ return r.date === CAL.sel; });
+  dayList.sort(function(a, b){ return (a.createdAt || 0) - (b.createdAt || 0); });
+  document.getElementById("cal-day-title").textContent = fmtDate(CAL.sel) + " の記録";
+  var rel = document.getElementById("cal-records");
+  rel.innerHTML = dayList.length ? dayList.map(recordCardHtml).join("") : '<div class="card"><p class="muted">この日の記録はまだありません。</p></div>';
+  bindRecordButtons(rel, renderCalendar);
 }
 function presetCardHtml(r) {
   return '<div class="card preset">'
@@ -461,10 +528,23 @@ function renderFilterVibes() {
 var E = null;
 var CF = { brand: "すべて", genre: "すべて", nic: "all", q: "" };
 function todayStr() { var d = new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
+var WD = ["日", "月", "火", "水", "木", "金", "土"];
+function fmtDate(dstr) {
+  if (!dstr) return "";
+  var p = dstr.split("-").map(Number);
+  if (p.length !== 3 || isNaN(p[0])) return dstr;
+  var dt = new Date(p[0], p[1] - 1, p[2]);
+  return dstr + "（" + WD[dt.getDay()] + "）";
+}
+function fmtTime(ts) {
+  var d = new Date(ts);
+  return d.getHours() + ":" + String(d.getMinutes()).padStart(2, "0");
+}
 function showView(edit) {
   document.getElementById("view-list").classList.toggle("hidden", edit);
   document.getElementById("view-edit").classList.toggle("hidden", !edit);
   document.getElementById("view-help").classList.add("hidden");
+  document.getElementById("view-calendar").classList.add("hidden");
   document.getElementById("btn-home").classList.toggle("hidden", !edit);
   window.scrollTo(0, 0);
 }
@@ -576,25 +656,42 @@ function renderCfChips() {
   }).join("");
   document.querySelectorAll("#cf-nic .chip").forEach(function(c) { c.addEventListener("click", function(){ CF.nic = c.getAttribute("data-n"); renderCfChips(); renderCatalog(); }); });
 }
+var COLLAPSE = {};
 function renderCatalog() {
   var entries = catalogEntries().filter(entryMatches);
   var order = BRAND_DATA.map(function(b){ return b.brand; }).concat(["系統別", "カスタム"]);
   var html = "", shown = 0;
+  var filtering = CF.brand !== "すべて" || CF.genre !== "すべて" || CF.nic !== "all" || !!CF.q;
   order.forEach(function(brand) {
     var list = entries.filter(function(f){ return f.brand === brand; });
     list.sort(function(a, b){ return a.label.localeCompare(b.label, "ja"); });
     if (!list.length) return;
     shown += list.length;
+    var hasSelected = list.some(function(f){ return E.items.some(function(it){ return itemKey(it) === itemKey(f); }); });
+    var expanded = (brand in COLLAPSE) ? COLLAPSE[brand] : (filtering || hasSelected);
     var bmeta = BRAND_DATA.find(function(b){ return b.brand === brand; });
-    var head = brand + (bmeta ? "（" + bmeta.ja + "）" : "") + (bmeta ? (bmeta.nic === 1 ? " ・ニコチン入り" : " ・ノンニコチン") : "");
-    html += '<div class="genre">' + esc(head) + '</div><div class="chips">'
-      + list.map(function(f) {
-        var on = E.items.some(function(it){ return itemKey(it) === itemKey(f); });
-        return '<button class="chip' + (on ? " on" : "") + '" data-flavor="' + esc(itemKey(f)) + '">' + esc(f.label) + (f.en && f.en !== f.label ? ' <span class="en">' + esc(f.en) + '</span>' : '') + '</button>';
-      }).join("") + '</div>';
+    var head = brand + (bmeta ? "（" + bmeta.ja + "）" : "") + (bmeta ? (bmeta.nic === 1 ? " ・ニコチン入り" : " ・ノンニコチン") : "") + "（" + list.length + "件）";
+    html += '<div class="genre" data-toggle="' + esc(brand) + '" style="cursor:pointer;user-select:none">' + (expanded ? "▼ " : "▶ ") + esc(head) + '</div>';
+    if (expanded) {
+      html += '<div class="chips">'
+        + list.map(function(f) {
+          var on = E.items.some(function(it){ return itemKey(it) === itemKey(f); });
+          return '<button class="chip' + (on ? " on" : "") + '" data-flavor="' + esc(itemKey(f)) + '">' + esc(f.label) + (f.en && f.en !== f.label ? ' <span class="en">' + esc(f.en) + '</span>' : '') + '</button>';
+        }).join("") + '</div>';
+    }
   });
   var el = document.getElementById("flavor-catalog");
   el.innerHTML = html ? '<p class="muted">' + shown + ' 件のフレーバー</p>' + html : '<p class="muted">見つかりませんでした。下の「フレーバーを追加」から追加できます。</p>';
+  el.querySelectorAll("[data-toggle]").forEach(function(h) {
+    h.addEventListener("click", function() {
+      var brand = h.getAttribute("data-toggle");
+      var filtering2 = CF.brand !== "すべて" || CF.genre !== "すべて" || CF.nic !== "all" || !!CF.q;
+      var hasSel = catalogEntries().some(function(f){ return f.brand === brand && E.items.some(function(it){ return itemKey(it) === itemKey(f); }); });
+      var cur = (brand in COLLAPSE) ? COLLAPSE[brand] : (filtering2 || hasSel);
+      COLLAPSE[brand] = !cur;
+      renderCatalog();
+    });
+  });
   el.querySelectorAll("button[data-flavor]").forEach(function(b) {
     b.addEventListener("click", function() {
       var key = b.getAttribute("data-flavor");
@@ -602,7 +699,7 @@ function renderCatalog() {
       if (!f) return;
       var idx = E.items.findIndex(function(it){ return itemKey(it) === key; });
       if (idx >= 0) E.items.splice(idx, 1);
-      else E.items.push(itemFromDb(f, 10));
+      else E.items.push(itemFromDb(f, 5));
       renderCatalog(); renderGramRows();
     });
   });
@@ -613,7 +710,7 @@ document.getElementById("btn-add-custom").addEventListener("click", function() {
   if (!v) return;
   if (state.customFlavors.indexOf(v) < 0 && !FLAVOR_DB.some(function(f){ return f.label === v; })) { state.customFlavors.push(v); save(); }
   var entry = { label: v, en: "", brand: "カスタム", genre: "", nic: null };
-  if (!E.items.some(function(it){ return itemKey(it) === itemKey(entry); })) E.items.push(itemFromDb(entry, 10));
+  if (!E.items.some(function(it){ return itemKey(it) === itemKey(entry); })) E.items.push(itemFromDb(entry, 5));
   document.getElementById("f-custom").value = "";
   renderCatalog(); renderGramRows();
 });
@@ -745,6 +842,9 @@ function showHelp() {
   window.scrollTo(0, 0);
 }
 document.getElementById("btn-help").addEventListener("click", showHelp);
+document.getElementById("btn-calendar").addEventListener("click", showCalendar);
+document.getElementById("cal-prev").addEventListener("click", function() { CAL.m--; if (CAL.m < 0) { CAL.m = 11; CAL.y--; } renderCalendar(); });
+document.getElementById("cal-next").addEventListener("click", function() { CAL.m++; if (CAL.m > 11) { CAL.m = 0; CAL.y++; } renderCalendar(); });
 document.getElementById("btn-help-close").addEventListener("click", function(){ E = null; renderList(); renderPresets(); showView(false); });
 document.getElementById("btn-new").addEventListener("click", function(){ openEditor(null); });
 document.getElementById("btn-new-preset").addEventListener("click", function(){ openPresetEditor(null); });
