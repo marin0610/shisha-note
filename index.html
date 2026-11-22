@@ -93,8 +93,21 @@
         <button class="sub" id="btn-calendar">📅 カレンダーで見る</button>
       </div>
     </div>
+    <h2 style="color:#cfc6ee;font-size:16px;margin:18px 0 8px">推しフレーバー診断</h2>
+    <div class="card">
+      <p class="muted">推しのイメージカラーと雰囲気に答えると、カタログ817種から「推し概念ミックス」を診断します。やってて楽しいやつです。</p>
+      <label for="oshi-name">推しの名前（任意）</label>
+      <input type="text" id="oshi-name" placeholder="例：推しの名前">
+      <label>Q1. 推しのイメージカラーは？</label>
+      <div class="chips" id="oshi-colors"></div>
+      <label>Q2. 推しの雰囲気は？（2つまで）</label>
+      <div class="chips" id="oshi-vibes"></div>
+      <div style="height:12px"></div>
+      <button class="primary" id="btn-oshi">診断する</button>
+      <div id="oshi-result"></div>
+    </div>
     <h2 style="color:#cfc6ee;font-size:16px;margin:18px 0 8px">おすすめミックス</h2>
-    <p class="muted">自分の鉄板配合を登録しておく欄です。「この配合で記録する」を押すと、その配合がコピーされて、今日の日付の新しい記録として開きます。味メモなどを書いて保存すれば、その日の記録になります（おすすめ自体は変わりません）。</p>
+    <p class="muted">自分の鉄板配合を登録しておく欄です。下にはネットで話題の再現ミックス（カルピス風・チーズケーキ風など）も「話題のミックス」として載っています。「この配合で記録する」を押すと、その配合がコピーされて、今日の日付の新しい記録として開きます。味メモなどを書いて保存すれば、その日の記録になります（おすすめ自体は変わりません）。</p>
     <div id="preset-list"></div>
     <div class="row-btns" style="margin-bottom:16px">
       <button class="sub" id="btn-new-preset">＋ おすすめミックスを追加</button>
@@ -129,6 +142,8 @@
       <p class="muted"><b style="color:#cfc6ee">相性サジェスト</b><br>フレーバーを選ぶと「このフレーバーに合う候補」が理由つきで出ます。タップすると配合に追加されます。新しいミックスを考えるヒントにどうぞ。</p>
       <p class="muted"><b style="color:#cfc6ee">フレーバーを探す</b><br>カタログはブランド別・味の系統別・ニコチンあり／なしで絞り込めます。名前での検索もできます。カタログにないフレーバーは「フレーバーを追加」から自分で足せます。</p>
       <p class="muted"><b style="color:#cfc6ee">カレンダーと登録時刻</b><br>「カレンダーで見る」から月カレンダーを開くと、記録のある日に件数が出ます。日をタップすると、その日の記録が見られます。「何曜日に作ったやつが良かった」みたいな探し方に便利です。日付には曜日も表示されます。記録を作った時刻は自動で残り、カードに「○:○○ 登録」と出ます（時刻が出ないのは、この機能より前に作られた記録です）。</p>
+      <p class="muted"><b style="color:#cfc6ee">話題のミックス</b><br>おすすめミックスの先頭にある「話題のミックス」は、ネットの記事やお店の投稿で実際に紹介されていた再現ミックス（カルピス風・チーズケーキ風など）を出典つきで載せたものです。グラムが記事に載っていたものはその通り、載っていないものは「目安」と書いてあります。「この配合で記録する」でそのまま試せます。</p>
+      <p class="muted"><b style="color:#cfc6ee">推しフレーバー診断</b><br>推しのイメージカラーと雰囲気（爽やか・可愛い・かっこいい等）を選ぶと、カタログから概念ミックスを診断します。結果は「この配合で記録する」で記録にしたり、「推し概念に保存する」でおすすめミックスの推し概念コーナーに残したりできます。</p>
       <p class="muted"><b style="color:#cfc6ee">保存について</b><br>記録はすべてこの端末の中（ブラウザ）に保存され、外部に送信されません。端末を変えると記録は引き継がれないので注意してください。</p>
       <button class="primary" id="btn-help-close">一覧に戻る</button>
     </div>
@@ -235,11 +250,11 @@ var BRAND_DATA = [
 { brand: "Golden Layalina", ja: "ゴールデンラヤリナ", nic: 1, list: "Blue Heaven|ブルーヘブン|F,Blue Mist|ブルーミスト|C,Appletini|アップルティーニ|D,Bahama Breeze|バハマブリーズ|D,Rose Garden|ローズガーデン|H,Key Lime|キーライム|F,BTS|ビーティーエス|F,Chocolate Cocoa|チョコレートココア|S,Honey Berry|ハニーベリー|F,Cognac|コニャック|D,Blue Curacao|ブルーキュラソー|D,Banana Daiquiri|バナナダイキリ|D,Sangria|サングリア|D,Rum Punch|ラムパンチ|D,Fruit Punch|フルーツパンチ|D,After Glow|アフターグロー|F,Apple Cinnamon|アップルシナモン|H,Blueberry Grape|ブルーベリーグレープ|F,Cucumber Mint|キューカンバーミント|C,Cheesecake|チーズケーキ|S,Spearmint|スペアミント|C" },
 { brand: "Tumbaki", ja: "トゥンバキ", nic: 1, list: "Golden Pistachio|ゴールデンピスタチオ|S,Double Apple|ダブルアップル|H,Blue Flash|ブルーフラッシュ|C,Wildberry Flash|ワイルドベリーフラッシュ|C,Triple Grape Flash|トリプルグレープフラッシュ|C,Unix|ユニックス|C,Waikiki Watermelon|ワイキキウォーターメロン|F,Panama Pineapple|パナマパイナップル|F,Rock'n Rose|ロックンローズ|H,Ricanelas|リカネラス|H,Cappuccino Italiano|カプチーノイタリアーノ|D,Baked Peach|ベイクドピーチ|F,Raspberry Punch|ラズベリーパンチ|D,Maui Dream|マウイドリーム|F,Jingle Jangle Flash|ジングルジャングルフラッシュ|C,Purple Effect|パープルエフェクト|F,Flower Power|フラワーパワー|H,Abra Cadabra|アブラカダブラ|F,Lady Extase|レディエクスターゼ|F,Dolce Rosso|ドルチェロッソ|F" },
 { brand: "FML", ja: "エフエムエル", nic: 1, list: "FML Green|エフエムエルグリーン|C,FML Red|エフエムエルレッド|C,FML Blue|エフエムエルブルー|C,FML Menthol|エフエムエルメンソール|C,Fresh Mint|フレッシュミント|C,Blueberry|ブルーベリー|F,Pineapple|パイナップル|F,Mango|マンゴー|F,Maracuja|マラクジャ|F,Melon Berry|メロンベリー|F,Ice Berry|アイスベリー|C,Citrus Ice|シトラスアイス|C,Lemon Mint|レモンミント|C,Very Berry|ベリーベリー|F,Tangerine|タンジェリン|F,Peach Fizz|ピーチフィズ|D" },
-{ brand: "JiBiAR", ja: "ジビアール", nic: 1, list: "Osmanthus|金木犀|H,Ice Green Apple|アイスグリーンアップル|C,Blue Orange|ブルーオレンジ|F,Taiga|タイガ|H,Panrasna|パンラズナ|H" },
+{ brand: "JiBiAR", ja: "ジビアール", nic: 1, list: "Osmanthus|金木犀|H,Ice Green Apple|アイスグリーンアップル|C,Blue Orange|ブルーオレンジ|F,Taiga|タイガ|H,Panrasna|パンラズナ|H,Tiramisu|ティラミス|S" },
 { brand: "LIRRA", ja: "リラ", nic: 1, list: "Sakura Mochi|さくらもち|S,Royal Tea|ロイヤルティー|D,Two Apple|トゥーアップル|H,White Musk|ホワイトムスク|H" },
 { brand: "Bang Bang", ja: "バンバン", nic: 1, list: "Raspberry Crush|ラズベリークラッシュ|F,Mango|マンゴー|F" },
 { brand: "Dozaj", ja: "ドサジ", nic: 1, list: "Acai|アサイー|F,Almond|アーモンド|S,Banana|バナナ|F,Basil|バジル|H,Bergamot Tea|ベルガモットティー|D,Biscuit|ビスケット|S,Black Currant|ブラックカラント|F,Black Tea|ブラックティー|D,Blueberry|ブルーベリー|F,Brown Sugar|ブラウンシュガー|S,Butter|バター|S,Cactus|カクタス|F,Cappuccino|カプチーノ|D,Caramel|キャラメル|S,Cardamon|カルダモン|H,Cherry|チェリー|F,Chocolate|チョコレート|S,Cinnamon|シナモン|H,Cotton Candy|コットンキャンディ|S,Dead Sea|デッドシー|H,Dragon Fruit|ドラゴンフルーツ|F,Eternal|エターナル|H,Fig|フィグ|F,Ginger Coconut|ジンジャーココナッツ|H,Grape|グレープ|F,Grapefruit|グレープフルーツ|F,Green Mix|グリーンミックス|F,Green Tea|グリーンティー|D,Gum Mastic|ガムマスティック|H,Hazelnut|ヘーゼルナッツ|S,Honey|ハニー|S,Ice|アイス|C,Ice Cream Lemon|アイスクリームレモン|S,Jasmine|ジャスミン|H,Kashmir|カシミール|H,Kiwi|キウィ|F,Kola|コーラ|D,Lemon|レモン|F,Lime|ライム|F,Linden Tea|リンデンティー|D,Lychee|ライチ|F,Macaron Pink|マカロンピンク|S,Magic Smoke|マジックスモーク|H,Mango|マンゴー|F,Melon|メロン|F,Milk|ミルク|S,Mint|ミント|C,Nes Quickly|ネスクイックリー|S,Orange|オレンジ|F,Pancake|パンケーキ|S,Passion Fruit|パッションフルーツ|F,Peach|ピーチ|F,Peanut Butter|ピーナッツバター|S,Pear|ピアー|F,Pineapple|パイナップル|F,Pink Lemonade|ピンクレモネード|D,Pistachio|ピスタチオ|S,Plum|プラム|F,Pomegranate|ポメグラネイト|F,Pomegranate Yogurt|ポメグラネイトヨーグルト|S,Popcorn|ポップコーン|S,Probis|プロビス|H,Quince|クインス|F,Sesame|セサミ|S,Strawberry|ストロベリー|F,Strawberry Yogurt|ストロベリーヨーグルト|S,Tangerine|タンジェリン|F,Twist|ツイスト|F,Two Apple|トゥーアップル|H,Vanilla|バニラ|S,Waffle Caramel|ワッフルキャラメル|S,Watermelon|ウォーターメロン|F,Yogurt|ヨーグルト|S,Yuzu|ユズ|F,Belgium Waffle|ベルギーワッフル|S,Killer Queen|キラークイーン|F,Black Queen|ブラッククイーン|H,Breakfast|ブレックファスト|S,Browni Peanut|ブラウニーピーナッツ|S,Bumboo|バンブー|H,Cash|キャッシュ|H,Cash Peach|キャッシュピーチ|F,Cherry Cash|チェリーキャッシュ|F,Choco Cream|チョコクリーム|S,Dark Wader|ダークベイダー|H,Dulce de Leche|ドゥルセデレチェ|S,Earl Grey|アールグレイ|D,El Clasico|エルクラシコ|H,Forest Berry|フォレストベリー|F,Havana Purro|ハバナプーロ|H,Holland Waffle|オランダワッフル|S,Ice Cola|アイスコーラ|D,Illegal|イリーガル|H,Jamaican Rum|ジャマイカンラム|D,King of Nectarine|キングオブネクタリン|F,Lime Lemon|ライムレモン|F,Mint Storm|ミントストーム|C,Morocco|モロッコ|H,Moscow Rose|モスクワローズ|H,Pink Flight|ピンクフライト|F,Pomegranate Juice|ザクロジュース|D,Pineapple Smoothie|パイナップルスムージー|D" },
-{ brand: "Azure", ja: "アズール", nic: 1, list: "Bermuda Mint|バミューダミント|C,Alaskan Ice|アラスカンアイス|C,Rio Mint|リオミント|C,Cool Cucumber|クールキュウリ|C,California Blue|カリフォルニアブルー|C,Cactus Blast|カクタスブラスト|F,Berrymania|ベリーマニア|F,Carolina Peach|カロライナピーチ|F,Lychee|ライチ|F,Grapemania|グレープマニア|F,Melon King|メロンキング|F,Winter Peach|ウィンターピーチ|F,Strawberry Passion|ストロベリーパッション|F,Grow A Pear|グローアペアー|F,Lemon Muffin|レモンマフィン|S,Blueberry Muffin|ブルーベリーマフィン|S,Cherry Muffin|チェリーマフィン|S,Mango Cheesecake|マンゴーチーズケーキ|S,Chai Masala|チャイマサラ|H,Lemongrass|レモングラス|H,Winter Rose|ウィンターローズ|H,Barista's Choice|バリスタズチョイス|D,Cola|コーラ|D,Limoncello|リモンチェッロ|D,Viva La Horchata|ビバラオルチャータ|D" },
+{ brand: "Azure", ja: "アズール", nic: 1, list: "Bermuda Mint|バミューダミント|C,Alaskan Ice|アラスカンアイス|C,Rio Mint|リオミント|C,Cool Cucumber|クールキュウリ|C,California Blue|カリフォルニアブルー|C,Cactus Blast|カクタスブラスト|F,Berrymania|ベリーマニア|F,Carolina Peach|カロライナピーチ|F,Lychee|ライチ|F,Grapemania|グレープマニア|F,Melon King|メロンキング|F,Winter Peach|ウィンターピーチ|F,Strawberry Passion|ストロベリーパッション|F,Grow A Pear|グローアペアー|F,Lemon Muffin|レモンマフィン|S,Blueberry Muffin|ブルーベリーマフィン|S,Cherry Muffin|チェリーマフィン|S,Mango Cheesecake|マンゴーチーズケーキ|S,Chai Masala|チャイマサラ|H,Lemongrass|レモングラス|H,Winter Rose|ウィンターローズ|H,Barista's Choice|バリスタズチョイス|D,Cola|コーラ|D,Limoncello|リモンチェッロ|D,Viva La Horchata|ビバラオルチャータ|D,Pinky|ピンキー|F,Solana Beach|ソラーナビーチ|F" },
 { brand: "Social Smoke", ja: "ソーシャルスモーク", nic: 1, list: "Absolute Zero|アブソリュートゼロ|C,Mint|ミント|C,Arctic Lemon|アークティックレモン|C,Lemon Chill|レモンチル|C,Cucumber Chill|キューカンバーチル|C,Watermelon Chill|ウォーターメロンチル|F,Golden Delicious Apple|ゴールデンデリシャスアップル|F,Japanese Yuzu|ジャパニーズユズ|F,Baja Blue|バハブルー|F,Berry Punch|ベリーパンチ|F,Blackberry|ブラックベリー|F,Cali Peach|カリピーチ|F,Cantaloupe Chill|カンタロープチル|F,Pear Chill|ペアチル|F,Tigers Blood|タイガースブラッド|F,Pistachio Breeze|ピスタチオブリーズ|S,Banana Foster|バナナフォスター|S,White Gummy Bear|ホワイトグミベア|S,Dulce de Leche|ドゥルセデレチェ|S,Pink Lemonade|ピンクレモネード|D,Hong Kong Milk Tea|ホンコンミルクティー|D,Mojito|モヒート|D,Voltage|ボルテージ|D,Mirage|ミラージュ|H,Cinnamint|シナミント|H" },
 { brand: "Trifecta", ja: "トライフェクタ", nic: 1, list: "Peppermint Shake|ペパーミントシェイク|C,Twice The Ice|トワイスザアイス|C,Twice The Ice X|トワイスザアイスX|C,Peach Mint|ピーチミント|C,Lemon Mint|レモンミント|C,Mediterranean Mint|メディテレーニアンミント|C,Death By Ice|デスバイアイス|C,Persian Melon|ペルシアンメロン|F,Pineapple Guava|パイナップルグアバ|F,TNT|ティーエヌティー|F,Ruby|ルビー|F,Blue Strawberry|ブルーストロベリー|F,Cherry Berry|チェリーベリー|F,BDS|ビーディーエス|F,BDH|ビーディーエイチ|F,Enigma|エニグマ|F,Mountain Fog|マウンテンフォグ|H,Coconut Ginger|ココナッツジンジャー|H,P3|ピースリー|S,Bonafide|ボナファイド|S,Apple Pie|アップルパイ|S,Indian Kheer|インディアンキール|S,Vanilla|バニラ|S,Cucumber Mojito|キューカンバーモヒート|D,Morning Glory|モーニンググローリー|D" },
 { brand: "FRU+TAS", ja: "フルタス", nic: 0, list: "Osmanthus|金木犀|H,Sakura|さくら|H" },
@@ -494,35 +509,152 @@ function renderCalendar() {
   rel.innerHTML = dayList.length ? dayList.map(recordCardHtml).join("") : '<div class="card"><p class="muted">この日の記録はまだありません。</p></div>';
   bindRecordButtons(rel, renderCalendar);
 }
+function presetBadges(r) {
+  var b = "";
+  if (r.kind === "shop") b = '<span class="badge">お店の定番</span>' + (r.shopName ? '<span class="badge">' + esc(r.shopName) + '</span>' : '');
+  else if (r.kind === "concept") b = '<span class="badge">推し概念</span>' + (r.oshi ? '<span class="badge">' + esc(r.oshi) + '</span>' : '');
+  else if (r.kind === "net") b = '<span class="badge">話題のミックス</span>';
+  else b = '<span class="badge">自分のおすすめ</span>';
+  return b + '<span class="badge">合計 ' + fmtG(totalGrams(r.items)) + 'g</span>' + (r.sizeName ? '<span class="badge">サイズ：' + esc(r.sizeName) + '</span>' : '') + nicBadgesHtml(r.items);
+}
 function presetCardHtml(r) {
   return '<div class="card preset">'
     + '<div class="rec-title">' + esc(r.title) + '</div>'
-    + '<div class="badges">' + (r.kind === "shop" ? '<span class="badge">お店の定番</span>' + (r.shopName ? '<span class="badge">' + esc(r.shopName) + '</span>' : '') : '<span class="badge">自分のおすすめ</span>')
-    + '<span class="badge">合計 ' + fmtG(totalGrams(r.items)) + 'g</span>' + (r.sizeName ? '<span class="badge">サイズ：' + esc(r.sizeName) + '</span>' : '') + nicBadgesHtml(r.items) + '</div>'
+    + '<div class="badges">' + presetBadges(r) + '</div>'
     + flavorLinesHtml(r.items)
     + '<div class="ratio-bar">' + ratioBarHtml(r.items) + '</div>'
     + ((r.vibes || []).length ? '<div class="badges">' + r.vibes.map(function(v){ return '<span class="badge vibe">' + esc(v) + '</span>'; }).join("") + '</div>' : '')
     + (r.note ? '<p class="muted">' + esc(r.note) + '</p>' : '')
-    + '<div class="row-btns"><button class="sub" data-use="' + r.id + '">この配合で記録する</button><button class="sub" data-pedit="' + r.id + '">編集する</button></div>'
+    + '<div class="row-btns"><button class="sub" data-use="' + r.id + '">この配合で記録する</button>' + (r.kind === "net" ? '' : '<button class="sub" data-pedit="' + r.id + '">編集する</button>') + '</div>'
     + '</div>';
 }
 function renderPresets() {
   var std = state.presets.filter(function(p){ return p.kind === "shop"; });
-  var mine = state.presets.filter(function(p){ return p.kind !== "shop"; });
-  var html = "";
+  var concept = state.presets.filter(function(p){ return p.kind === "concept"; });
+  var mine = state.presets.filter(function(p){ return p.kind !== "shop" && p.kind !== "concept"; });
+  var html = '<p class="muted" style="margin:4px 0">― 話題のミックス（ネットで人気）―</p>' + NET_MIXES.map(presetCardHtml).join("");
   if (std.length) html += '<p class="muted" style="margin:4px 0">― お店の定番 ―</p>' + std.map(presetCardHtml).join("");
+  if (concept.length) html += '<p class="muted" style="margin:4px 0">― 推し概念 ―</p>' + concept.map(presetCardHtml).join("");
   if (mine.length) html += '<p class="muted" style="margin:4px 0">― 自分のおすすめ ―</p>' + mine.map(presetCardHtml).join("");
-  if (!std.length && !mine.length) html = '<div class="card"><p class="muted">おすすめミックスがまだありません。「＋ おすすめミックスを追加」から、お店の定番や自分の鉄板を登録できます。</p></div>';
+  if (!std.length && !concept.length && !mine.length) html += '<div class="card"><p class="muted">自分のミックスはまだ登録がありません。「＋ おすすめミックスを追加」から、お店の定番や自分の鉄板を登録できます。推し診断の結果もここに保存できます。</p></div>';
   var wrap = document.getElementById("preset-list");
   wrap.innerHTML = html;
   wrap.querySelectorAll("button[data-use]").forEach(function(b) {
     b.addEventListener("click", function() {
-      var p = state.presets.find(function(x){ return x.id === b.getAttribute("data-use"); });
+      var id = b.getAttribute("data-use");
+      var p = state.presets.find(function(x){ return x.id === id; }) || NET_MIXES.find(function(x){ return x.id === id; });
       if (p) openEditorFromPreset(p);
     });
   });
   wrap.querySelectorAll("button[data-pedit]").forEach(function(b) { b.addEventListener("click", function(){ openPresetEditor(b.getAttribute("data-pedit")); }); });
 }
+
+/* ========= 話題のミックス（出典つき・分量は記事準拠または目安） ========= */
+function NM(id, title, items, note) {
+  return { id: id, kind: "net", title: title, note: note, vibes: [], items: items.map(function(a){ return { label: a[0], en: "", brand: a[1], genre: "", nic: null, grams: a[2] }; }) };
+}
+var NET_MIXES = [
+  NM("net1", "カルピス風『忍び寄るカルピス』", [["ヨーグルト","DeCloud",5],["オレンジ","Al Fakher",3],["レモン","Al Fakher",2],["チェリー","Dozaj",3]], "シーシャカフェINAZUMAの投稿で紹介されたカルピス再現ミックス。ヨーグルトを軸に柑橘とチェリーで甘酸っぱく。分量は目安です。"),
+  NM("net2", "カルピス風『ヤクルトとカルピスの間』", [["ヨーグルト","DeCloud",6],["レモン","Al Fakher",3],["イチジク","",4]], "INAZUMAの投稿より。ヤクルトとカルピスの中間のような乳酸菌ドリンク感を狙った組み合わせ。分量は目安です。"),
+  NM("net3", "レアチーズケーキ風", [["ミルク","Debaj",4],["レモン","LIRRA",3],["ビスケット","Dozaj",3]], "シーシャショップASLAJのブログのレシピ（グラム通り）。ミルクのまったり感がクリームチーズ、レモンでさっぱり、ビスケットが土台の生地感。"),
+  NM("net4", "ストロベリーチーズケーキ", [["ストロベリー","Dozaj",4],["フェイジョアチーズケーキ","tabu",3],["シナモンクッキー","Azure",3],["ミルク","Debaj",3]], "高円寺Celluloid「シーシャ100本ノック」より。イチゴジャムがかかった甘酸っぱいチーズケーキ味。分量は目安です。"),
+  NM("net5", "杏仁豆腐風", [["キウイ","",3],["ココナッツ","",4],["チェリー","Dozaj",3]], "Celluloid「100本ノック」で『再現度高め』と紹介された杏仁豆腐再現。クリーミーでなめらか。分量は目安です。"),
+  NM("net6", "メロンクリームソーダ Ver.2", [["バニラ","Al Fakher",3],["バニラ","DeCloud",2],["アイス","Dozaj",2],["レモンフィズ","Afzal",2],["トニックウォーター","AHIRU SHISHA",2],["ミント","Fumari",1],["マルチフルーツ","Mock-Base",2],["メロン","Dozaj",1],["ブルーベリー","Al Fakher",0.5],["ハニー","AHIRU SHISHA",0.5]], "人形町SPOTの公式レシピ（グラム通り・合計16g）。バニラ2種でアイスのクリーミーさ、炭酸感はアイス＋レモンフィズ＋トニックウォーターで。"),
+  NM("net7", "クラフトコーラ風", [["ツイスト","Dozaj",7],["シナモンガム","Bang Bang",5]], "恵比寿RIMEの紹介。コーラ×ライム×アイスのツイストにシナモンガムを足して、簡易クラフトコーラのようなサッパリ感。"),
+  NM("net8", "濃厚ロイヤル・ティラミス", [["ティラミス","JiBiAR",6.5],["ミルク","Debaj",4],["バニラ","Al Fakher",2.5]], "シーシャメディア水煙庵のレビューより（比率50:30:20をグラム換算）。ミルクとバニラで高級ホテルのアフタヌーンティーのような贅沢な甘さに。"),
+  NM("net9", "ロイヤルミルクティー", [["ミルク","Debaj",7],["アールグレイ","DeCloud",6]], "ミルク＋アールグレイの王道ミルクティー再現（モクログのトレンド記事より）。ストロベリーを足すと苺ミルクティーに。分量は目安です。"),
+  NM("net10", "ダブルアップル×ミント（王道7:3）", [["ダブルアップル","Al Fakher",9],["ミント","Al Fakher",4]], "水煙庵が『長年愛されている超定番』と紹介する比率7:3。アニス感にミントの清涼感で後味爽快。"),
+  NM("net11", "ダブルアップル×シナモン×バニラ（5:2:3）", [["ダブルアップル","Al Fakher",6.5],["シナモン","Al Fakher",2.5],["バニラ","Al Fakher",4]], "水煙庵の『濃厚な大人のデザート』アレンジ。焼き菓子風に寄せる派生レシピ。"),
+  NM("net12", "Love 66×レモン（7:3）", [["Love 66","Adalya",9],["レモン","Al Fakher",4]], "水煙庵のLove66レビューより。レモンで爽快感MAXに寄せる派生。バニラ8:2にすると濃厚デザート風。"),
+  NM("net13", "バニラ×ミルク×キャラメル（4:3:3）", [["バニラ","Al Fakher",5],["ミルク","Debaj",4],["キャラメル","Starbuzz",4]], "BEYOND VAPE JAPANの甘めレシピ。甘いフレーバーだけで固めた甘党向け。"),
+  NM("net14", "スタバ風ピンキーラテ", [["ピンキー","Azure",6],["ミルク","Debaj",4]], "シーシャ店ばんびえんのスタッフnoteより。ピンキー（ピンクグレープフルーツ＋ストロベリー＋ラズベリー）をミルクでラテ風に。")
+];
+
+/* ========= 推しフレーバー診断 ========= */
+var OSHI_COLORS = {
+  "赤": ["ベリー", "ストロベリー", "チェリー", "ラズベリー", "レッド", "スイカ", "ザクロ", "ローズ"],
+  "ピンク": ["ピーチ", "ストロベリー", "ローズ", "バブルガム", "ピンク", "サクラ", "さくら"],
+  "青": ["ブルー", "ミント", "ベリー"],
+  "水色": ["アイス", "ミント", "ライム", "ソーダ", "ブルー"],
+  "紫": ["グレープ", "ラベンダー", "ベリー", "プラム"],
+  "黄色": ["レモン", "パイナップル", "マンゴー", "バナナ", "ユズ", "ゆず"],
+  "オレンジ": ["オレンジ", "アプリコット", "マンゴー", "みかん"],
+  "緑": ["グリーンアップル", "キウィ", "メロン", "ライム", "マスカット"],
+  "白": ["バニラ", "ココナッツ", "ミルク", "クリーム", "ホワイト"],
+  "黒": ["コーラ", "コーヒー", "ダーク", "チョコ", "ブラック"]
+};
+var OSHI_VIBES = {
+  "爽やか": ["ミント", "アイス", "ライム", "レモン", "ソーダ", "ユーカリ"],
+  "可愛い": ["ピーチ", "バブルガム", "ストロベリー", "メロン", "マシュマロ"],
+  "かっこいい": ["コーラ", "ダーク", "コーヒー", "メンソール"],
+  "クール": ["ミント", "ユーカリ", "アイス", "メンソール"],
+  "面白い": ["ベーコン", "パンラーズ", "アブサン", "ジンジャー", "スパイス"],
+  "甘い": ["バニラ", "キャラメル", "ハニー", "チョコ", "プリン"],
+  "元気": ["オレンジ", "レモン", "パイナップル", "エナジー", "グレープフルーツ"],
+  "大人っぽい": ["ワイン", "ラム", "コーヒー", "ウイスキー"],
+  "ミステリアス": ["アブサン", "ラベンダー", "ジャスミン", "ハーブ"],
+  "癒し系": ["バニラ", "ミルク", "ハニー", "カモミール", "ピーチ"]
+};
+var OSHI_VIBE_TEXT = { "爽やか": "爽やかで清涼感のある", "可愛い": "甘くて可愛い", "かっこいい": "キリッとかっこいい", "クール": "クールで澄んだ", "面白い": "ちょっと意外で面白い", "甘い": "甘くて幸せな", "元気": "元気いっぱいの", "大人っぽい": "大人っぽく落ち着いた", "ミステリアス": "ミステリアスで惹かれる", "癒し系": "ほっと癒される" };
+var OSHI = { color: "", vibes: [] };
+var OSHI_RESULT = null;
+function renderOshiChips() {
+  document.getElementById("oshi-colors").innerHTML = Object.keys(OSHI_COLORS).map(function(c) {
+    return '<button class="chip' + (OSHI.color === c ? " on" : "") + '" data-c="' + esc(c) + '">' + esc(c) + '</button>';
+  }).join("");
+  document.querySelectorAll("#oshi-colors .chip").forEach(function(ch) {
+    ch.addEventListener("click", function() { OSHI.color = OSHI.color === ch.getAttribute("data-c") ? "" : ch.getAttribute("data-c"); renderOshiChips(); });
+  });
+  document.getElementById("oshi-vibes").innerHTML = Object.keys(OSHI_VIBES).map(function(v) {
+    return '<button class="chip vibe' + (OSHI.vibes.indexOf(v) >= 0 ? " on" : "") + '" data-v="' + esc(v) + '">' + esc(v) + '</button>';
+  }).join("");
+  document.querySelectorAll("#oshi-vibes .chip").forEach(function(ch) {
+    ch.addEventListener("click", function() {
+      var v = ch.getAttribute("data-v");
+      var i = OSHI.vibes.indexOf(v);
+      if (i >= 0) OSHI.vibes.splice(i, 1);
+      else { OSHI.vibes.push(v); if (OSHI.vibes.length > 2) OSHI.vibes.shift(); }
+      renderOshiChips();
+    });
+  });
+}
+function oshiScore(f) {
+  var s = 0;
+  var lab = f.label, en = (f.en || "").toLowerCase();
+  function hit(kw) { return lab.indexOf(kw) >= 0 || en.indexOf(kw.toLowerCase()) >= 0; }
+  (OSHI_COLORS[OSHI.color] || []).forEach(function(kw) { if (hit(kw)) s += 3; });
+  OSHI.vibes.forEach(function(v) { (OSHI_VIBES[v] || []).forEach(function(kw) { if (hit(kw)) s += 2; }); });
+  return s;
+}
+function diagnoseOshi() {
+  var name = document.getElementById("oshi-name").value.trim();
+  if (!OSHI.color && !OSHI.vibes.length) { toast("カラーか雰囲気を1つは選んでね"); return; }
+  var scored = FLAVOR_DB.map(function(f) { return { f: f, s: oshiScore(f) }; }).filter(function(x) { return x.s > 0; });
+  scored.sort(function(a, b) { return b.s - a.s; });
+  var picks = [], usedEn = {};
+  scored.forEach(function(x) { if (picks.length < 3 && !usedEn[x.f.en]) { usedEn[x.f.en] = 1; picks.push(x.f); } });
+  if (!picks.length) { toast("合うフレーバーが見つからなかった…組み合わせを変えてみて"); return; }
+  var gramsSet = picks.length >= 3 ? [6, 4, 3] : (picks.length === 2 ? [8, 5] : [13]);
+  var items = picks.map(function(f, i) { return itemFromDb(f, gramsSet[i]); });
+  var title = (name || "推し") + "概念ミックス";
+  var vibeText = OSHI.vibes.map(function(v) { return OSHI_VIBE_TEXT[v] || v; }).join("、");
+  var comment = "イメージカラー「" + (OSHI.color || "なし") + "」" + (vibeText ? "に、" + vibeText + "雰囲気を重ねた" : "の") + "概念ミックスです。";
+  OSHI_RESULT = { id: "oshi" + Date.now(), kind: "concept", oshi: name, title: title, items: items, note: comment, vibes: OSHI.vibes.slice(), createdAt: Date.now() };
+  var el = document.getElementById("oshi-result");
+  el.innerHTML = '<div style="height:12px"></div><div class="rec-title">' + esc(title) + '</div>'
+    + flavorLinesHtml(items)
+    + '<div class="ratio-bar">' + ratioBarHtml(items) + '</div>'
+    + '<p class="muted">' + esc(comment) + '</p>'
+    + '<div class="row-btns"><button class="sub" id="btn-oshi-use">この配合で記録する</button><button class="sub" id="btn-oshi-save">推し概念に保存する</button></div>';
+  document.getElementById("btn-oshi-use").addEventListener("click", function() { openEditorFromPreset(OSHI_RESULT); });
+  document.getElementById("btn-oshi-save").addEventListener("click", function() {
+    state.presets.push(OSHI_RESULT);
+    OSHI_RESULT = Object.assign({}, OSHI_RESULT, { id: "oshi" + (Date.now() + 1) });
+    save(); renderPresets(); toast("推し概念に保存しました");
+  });
+}
+document.getElementById("btn-oshi").addEventListener("click", diagnoseOshi);
+
 document.getElementById("search").addEventListener("input", function(ev){ filter.query = ev.target.value.trim(); renderList(); });
 document.getElementById("btn-fav-only").addEventListener("click", function() {
   filter.favOnly = !filter.favOnly;
@@ -877,6 +1009,7 @@ document.getElementById("btn-home").addEventListener("click", function(){ E = nu
 })();
 renderFilterVibes();
 renderPresets();
+renderOshiChips();
 renderList();
 </script>
 </body>
