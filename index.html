@@ -64,6 +64,7 @@
     <h1>シーシャノート</h1>
     <div class="tag">フレーバーミックスの記録帳</div>
   </div>
+  <button id="btn-help">？</button>
   <button id="btn-home" class="hidden">一覧へ</button>
 </header>
 <main>
@@ -92,12 +93,38 @@
     <div id="record-list"></div>
   </section>
 
+  <!-- ヘルプ -->
+  <section id="view-help" class="hidden">
+    <div class="card">
+      <h2>使い方</h2>
+      <p class="muted"><b style="color:#f5d9a8">記録を作る</b><br>「＋ 新しいミックスを記録」から、フレーバーを選んでグラム数を入れるだけ。割合（％）は自動で計算されます。味のメモ・雰囲気メモ・星評価も一緒に残せます。</p>
+      <p class="muted"><b style="color:#f5d9a8">おすすめミックス</b><br>自分の鉄板配合を先に登録しておく欄です。「お店の定番」と「自分のおすすめ」の2種類があり、お店の定番はお店ごとに違うので、店名と一緒に自分で登録する形式です。複数のお店で働く人は、お店ごとに定番を分けて登録すると、その日のシフトのお店の配合がすぐ出せます。おすすめの「この配合で記録する」を押すと、今日の日付で記録に移せます。</p>
+      <p class="muted"><b style="color:#f5d9a8">サイズ違い</b><br>サイズの名前はお店によって違うので、サイズ名は自由に入力できます（レギュラー／ロングなど、そのお店の呼び方でOK）。編集画面の「サイズ違いを登録」から、今の配合をコピーして別サイズとして登録できます。グラム数は倍率（そのまま／×0.7／×1.4）で換算して開くので、あとは微調整するだけです。サイズで割合自体が変わる配合も、そのまま直して保存できます。</p>
+      <p class="muted"><b style="color:#f5d9a8">グラム数と割合</b><br>グラム数は0.1g単位まで入力できます（例：12.5g）。割合は入力したグラム数から自動計算されるので、細かい数字でも大丈夫です。</p>
+      <p class="muted"><b style="color:#f5d9a8">相性サジェスト</b><br>フレーバーを選ぶと「このフレーバーに合う候補」が理由つきで出ます。タップすると配合に追加されます。新しいミックスを考えるヒントにどうぞ。</p>
+      <p class="muted"><b style="color:#f5d9a8">フレーバーを探す</b><br>カタログはブランド別・味の系統別・ニコチンあり／なしで絞り込めます。名前での検索もできます。カタログにないフレーバーは「フレーバーを追加」から自分で足せます。</p>
+      <p class="muted"><b style="color:#f5d9a8">保存について</b><br>記録はすべてこの端末の中（ブラウザ）に保存され、外部に送信されません。端末を変えると記録は引き継がれないので注意してください。</p>
+      <button class="primary" id="btn-help-close">一覧に戻る</button>
+    </div>
+  </section>
+
   <!-- 編集 -->
   <section id="view-edit" class="hidden">
     <div class="card">
       <h2 id="edit-title">新しいミックス</h2>
       <label for="f-title">タイトル</label>
       <input type="text" id="f-title" placeholder="例：ブルーベリー×ミント（空欄ならフレーバー名から自動）">
+      <label for="f-size">サイズ名（任意・お店の呼び方で）</label>
+      <input type="text" id="f-size" list="size-list" placeholder="例：レギュラー、ロング、大ボウル">
+      <datalist id="size-list"></datalist>
+      <div id="preset-only-fields" class="hidden">
+        <label>種類</label>
+        <div class="chips" id="kind-chips"></div>
+        <div id="shop-name-row">
+          <label for="f-shop">お店の名前</label>
+          <input type="text" id="f-shop" placeholder="例：MOOCA">
+        </div>
+      </div>
       <div id="record-only-fields">
         <label for="f-date">日付</label>
         <input type="date" id="f-date">
@@ -136,6 +163,17 @@
       <div class="row-btns">
         <button class="primary" id="btn-save" style="flex:1">保存する</button>
         <button class="danger hidden" id="btn-delete">削除</button>
+        <button class="sub hidden" id="btn-dup-size">サイズ違いを登録</button>
+      </div>
+      <div id="dup-box" class="hidden">
+        <label>サイズ違いのグラム換算</label>
+        <div class="chips" id="dup-factors">
+          <button class="chip" data-f="1">そのまま</button>
+          <button class="chip" data-f="0.7">×0.7</button>
+          <button class="chip" data-f="1.4">×1.4</button>
+        </div>
+        <button class="sub" id="btn-dup-open">この倍率でサイズ違いを開く</button>
+        <p class="muted">今の配合をコピーして新しい登録として開きます。サイズ名を入れて保存してください。</p>
       </div>
       <p class="muted" id="save-status"></p>
     </div>
@@ -277,7 +315,9 @@ try {
   if (raw) { var p = JSON.parse(raw); if (p && typeof p === "object") state = Object.assign(state, p); }
 } catch (e) {}
 if (!Array.isArray(state.records)) state.records = SAMPLE_RECORDS.slice();
-if (!Array.isArray(state.presets)) state.presets = BUILTIN_PRESETS.slice();
+if (!Array.isArray(state.presets)) state.presets = [];
+/* お店の定番はお店ごとに違うため、内蔵プリセットは入れない（旧版で入った内蔵分は除去） */
+state.presets = state.presets.filter(function(p){ return !(p.id && String(p.id).indexOf("preset-std") === 0); });
 /* v1形式（items が name/grams）の移行 */
 state.records.forEach(function(r) {
   r.items = (r.items || []).map(function(it) {
@@ -292,6 +332,9 @@ function toast(msg) { var t = document.getElementById("toast"); t.textContent = 
 
 /* ========= 計算 ========= */
 function totalGrams(items) { return items.reduce(function(s, it){ return s + (parseFloat(it.grams) || 0); }, 0); }
+function fmtG(n) { return String(Math.round((parseFloat(n) || 0) * 10) / 10); }
+function round1(n) { return Math.round(n * 10) / 10; }
+function scaledItems(items, f) { return items.map(function(it){ var c = Object.assign({}, it); c.grams = Math.max(0.1, round1((parseFloat(it.grams) || 0) * f)); return c; }); }
 function ratioPct(items, i) { var t = totalGrams(items); return t ? Math.round((parseFloat(items[i].grams) || 0) / t * 100) : 0; }
 function starsText(r) { var s = ""; for (var i = 1; i <= 5; i++) s += i <= r ? "★" : '<span class="off">★</span>'; return s; }
 function ratioBarHtml(items) {
@@ -302,7 +345,7 @@ function flavorLinesHtml(items) {
   return items.map(function(it, i) {
     return '<div class="flavor-line"><span class="dot" style="background:' + flavorColor(it.label) + '"></span>' + esc(it.label)
       + (it.brand ? ' <span class="small">（' + esc(it.brand) + '）</span>' : '')
-      + '　' + esc(it.grams) + 'g（' + ratioPct(items, i) + '%）</div>';
+      + '　' + esc(fmtG(it.grams)) + 'g（' + ratioPct(items, i) + '%）</div>';
   }).join("");
 }
 function nicBadgesHtml(items) {
@@ -338,7 +381,7 @@ function renderList() {
       + '<button class="fav' + (r.fav ? " on" : "") + '" data-fav="' + r.id + '">★</button></div>'
       + '<div class="badges"><span class="badge">' + esc(r.date || "") + '</span>'
       + (r.place ? '<span class="badge">' + esc(r.place) + '</span>' : '')
-      + '<span class="badge">合計 ' + totalGrams(r.items) + 'g</span>' + nicBadgesHtml(r.items)
+      + '<span class="badge">合計 ' + fmtG(totalGrams(r.items)) + 'g</span>' + (r.sizeName ? '<span class="badge">サイズ：' + esc(r.sizeName) + '</span>' : '') + nicBadgesHtml(r.items)
       + (r.sample ? '<span class="badge">サンプル</span>' : '') + '</div>'
       + flavorLinesHtml(r.items)
       + '<div class="ratio-bar">' + ratioBarHtml(r.items) + '</div>'
@@ -360,7 +403,7 @@ function renderList() {
     b.addEventListener("click", function() {
       var rec = state.records.find(function(r){ return r.id === b.getAttribute("data-topreset"); });
       if (!rec) return;
-      state.presets.push({ id: "p" + Date.now(), title: rec.title, items: rec.items.map(function(it){ return Object.assign({}, it); }), note: rec.vibeText || "", vibes: (rec.vibes || []).slice(), builtin: false, createdAt: Date.now() });
+      state.presets.push({ id: "p" + Date.now(), title: rec.title, items: rec.items.map(function(it){ return Object.assign({}, it); }), note: rec.vibeText || "", vibes: (rec.vibes || []).slice(), kind: "mine", shopName: "", createdAt: Date.now() });
       save(); renderPresets(); toast("おすすめミックスに登録しました");
     });
   });
@@ -368,8 +411,8 @@ function renderList() {
 function presetCardHtml(r) {
   return '<div class="card preset">'
     + '<div class="rec-title">' + esc(r.title) + '</div>'
-    + '<div class="badges">' + (r.builtin ? '<span class="badge">お店の定番</span>' : '<span class="badge">自分のおすすめ</span>')
-    + '<span class="badge">合計 ' + totalGrams(r.items) + 'g</span>' + nicBadgesHtml(r.items) + '</div>'
+    + '<div class="badges">' + (r.kind === "shop" ? '<span class="badge">お店の定番</span>' + (r.shopName ? '<span class="badge">' + esc(r.shopName) + '</span>' : '') : '<span class="badge">自分のおすすめ</span>')
+    + '<span class="badge">合計 ' + fmtG(totalGrams(r.items)) + 'g</span>' + (r.sizeName ? '<span class="badge">サイズ：' + esc(r.sizeName) + '</span>' : '') + nicBadgesHtml(r.items) + '</div>'
     + flavorLinesHtml(r.items)
     + '<div class="ratio-bar">' + ratioBarHtml(r.items) + '</div>'
     + ((r.vibes || []).length ? '<div class="badges">' + r.vibes.map(function(v){ return '<span class="badge vibe">' + esc(v) + '</span>'; }).join("") + '</div>' : '')
@@ -378,12 +421,12 @@ function presetCardHtml(r) {
     + '</div>';
 }
 function renderPresets() {
-  var std = state.presets.filter(function(p){ return p.builtin; });
-  var mine = state.presets.filter(function(p){ return !p.builtin; });
+  var std = state.presets.filter(function(p){ return p.kind === "shop"; });
+  var mine = state.presets.filter(function(p){ return p.kind !== "shop"; });
   var html = "";
   if (std.length) html += '<p class="muted" style="margin:4px 0">― お店の定番 ―</p>' + std.map(presetCardHtml).join("");
   if (mine.length) html += '<p class="muted" style="margin:4px 0">― 自分のおすすめ ―</p>' + mine.map(presetCardHtml).join("");
-  if (!std.length && !mine.length) html = '<div class="card"><p class="muted">おすすめミックスがまだありません。</p></div>';
+  if (!std.length && !mine.length) html = '<div class="card"><p class="muted">おすすめミックスがまだありません。「＋ おすすめミックスを追加」から、お店の定番や自分の鉄板を登録できます。</p></div>';
   var wrap = document.getElementById("preset-list");
   wrap.innerHTML = html;
   wrap.querySelectorAll("button[data-use]").forEach(function(b) {
@@ -420,14 +463,30 @@ function todayStr() { var d = new Date(); return d.getFullYear() + "-" + String(
 function showView(edit) {
   document.getElementById("view-list").classList.toggle("hidden", edit);
   document.getElementById("view-edit").classList.toggle("hidden", !edit);
+  document.getElementById("view-help").classList.add("hidden");
   document.getElementById("btn-home").classList.toggle("hidden", !edit);
   window.scrollTo(0, 0);
 }
+function renderKindChips() {
+  var kinds = [["shop", "お店の定番"], ["mine", "自分のおすすめ"]];
+  document.getElementById("kind-chips").innerHTML = kinds.map(function(k) {
+    return '<button class="chip' + (E.kind === k[0] ? " on" : "") + '" data-k="' + k[0] + '">' + k[1] + '</button>';
+  }).join("");
+  document.querySelectorAll("#kind-chips .chip").forEach(function(c) {
+    c.addEventListener("click", function() {
+      E.kind = c.getAttribute("data-k");
+      document.getElementById("shop-name-row").classList.toggle("hidden", E.kind !== "shop");
+      renderKindChips();
+    });
+  });
+}
 function applyMode() {
   var preset = E.mode === "preset";
+  document.getElementById("preset-only-fields").classList.toggle("hidden", !preset);
   document.getElementById("record-only-fields").classList.toggle("hidden", preset);
   document.getElementById("record-only-rating").classList.toggle("hidden", preset);
   document.getElementById("vibe-label").textContent = preset ? "おすすめポイント" : "雰囲気メモ";
+  if (preset) { renderKindChips(); document.getElementById("shop-name-row").classList.toggle("hidden", E.kind !== "shop"); }
   document.getElementById("edit-title").textContent = preset ? (E.id ? "おすすめミックスを編集" : "おすすめミックスを追加") : (E.id ? "記録を編集" : "新しいミックス");
 }
 function openEditor(id) {
@@ -437,6 +496,7 @@ function openEditor(id) {
     vibes: rec ? (rec.vibes || []).slice() : [], rating: rec ? (rec.rating || 0) : 0,
     fav: rec ? !!rec.fav : false, sample: rec ? !!rec.sample : false, builtin: false };
   document.getElementById("f-title").value = rec ? rec.title : "";
+  document.getElementById("f-size").value = rec ? (rec.sizeName || "") : "";
   document.getElementById("f-date").value = rec ? (rec.date || todayStr()) : todayStr();
   document.getElementById("f-place").value = rec ? (rec.place || "") : "";
   document.getElementById("f-taste").value = rec ? (rec.taste || "") : "";
@@ -447,9 +507,12 @@ function openPresetEditor(id) {
   var p = id ? state.presets.find(function(x){ return x.id === id; }) : null;
   E = { mode: "preset", id: p ? p.id : null,
     items: p ? p.items.map(function(it){ return Object.assign({}, it); }) : [],
-    vibes: p ? (p.vibes || []).slice() : [], rating: 0, fav: false, sample: false, builtin: p ? !!p.builtin : false };
+    vibes: p ? (p.vibes || []).slice() : [], rating: 0, fav: false, sample: false,
+    kind: p ? (p.kind || "mine") : "mine", shopName: p ? (p.shopName || "") : "" };
   document.getElementById("f-title").value = p ? p.title : "";
+  document.getElementById("f-size").value = p ? (p.sizeName || "") : "";
   document.getElementById("f-vibe").value = p ? (p.note || "") : "";
+  document.getElementById("f-shop").value = p ? (p.shopName || "") : "";
   finishOpen();
 }
 function openEditorFromPreset(p) {
@@ -457,14 +520,22 @@ function openEditorFromPreset(p) {
     items: p.items.map(function(it){ return Object.assign({}, it); }),
     vibes: (p.vibes || []).slice(), rating: 0, fav: false, sample: false, builtin: false };
   document.getElementById("f-title").value = p.title;
+  document.getElementById("f-size").value = p.sizeName || "";
   document.getElementById("f-date").value = todayStr();
   document.getElementById("f-place").value = "";
   document.getElementById("f-taste").value = "";
   document.getElementById("f-vibe").value = "";
   finishOpen();
 }
+var dupFactor = 1;
 function finishOpen() {
   document.getElementById("btn-delete").classList.toggle("hidden", !E.id);
+  document.getElementById("btn-dup-size").classList.toggle("hidden", !E.id);
+  document.getElementById("dup-box").classList.add("hidden");
+  var sizes = {};
+  state.records.forEach(function(r){ if (r.sizeName) sizes[r.sizeName] = 1; });
+  state.presets.forEach(function(p){ if (p.sizeName) sizes[p.sizeName] = 1; });
+  document.getElementById("size-list").innerHTML = Object.keys(sizes).map(function(s){ return '<option value="' + esc(s) + '">'; }).join("");
   document.getElementById("save-status").textContent = "";
   applyMode();
   renderCfChips(); renderCatalog(); renderGramRows(); renderEditVibes(); renderStars();
@@ -551,7 +622,7 @@ function renderGramRows() {
     wrap.innerHTML = E.items.map(function(it, i) {
       return '<div class="gram-row"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:' + flavorColor(it.label) + '"></span>'
         + '<span class="name">' + esc(it.label) + (it.brand ? ' <span class="small">' + esc(it.brand) + '</span>' : '') + '</span>'
-        + '<input type="number" min="0" step="0.5" value="' + esc(it.grams) + '" data-gram="' + i + '"><span>g</span>'
+        + '<input type="number" min="0" step="0.1" value="' + esc(it.grams) + '" data-gram="' + i + '"><span>g</span>'
         + '<span class="pct">' + ratioPct(E.items, i) + '%</span>'
         + '<button data-remove="' + i + '">✕</button></div>';
     }).join("");
@@ -566,7 +637,7 @@ function renderGramRows() {
   renderPairBox();
 }
 function renderTotalsOnly() {
-  document.getElementById("edit-total").textContent = "合計 " + totalGrams(E.items) + "g";
+  document.getElementById("edit-total").textContent = "合計 " + fmtG(totalGrams(E.items)) + "g";
   document.getElementById("edit-ratio").innerHTML = ratioBarHtml(E.items);
   document.querySelectorAll("#gram-rows .pct").forEach(function(el, i){ el.textContent = ratioPct(E.items, i) + "%"; });
 }
@@ -618,13 +689,13 @@ document.getElementById("btn-save").addEventListener("click", function() {
   var title = document.getElementById("f-title").value.trim();
   if (!title) title = items.map(function(it){ return it.label; }).join("×");
   if (E.mode === "preset") {
-    var pr = { id: E.id || "p" + Date.now(), title: title, items: items, note: document.getElementById("f-vibe").value.trim(), vibes: E.vibes.slice(), builtin: E.builtin, createdAt: E.id ? ((state.presets.find(function(x){ return x.id === E.id; }) || {}).createdAt || Date.now()) : Date.now() };
+    var pr = { id: E.id || "p" + Date.now(), title: title, sizeName: document.getElementById("f-size").value.trim(), items: items, note: document.getElementById("f-vibe").value.trim(), vibes: E.vibes.slice(), kind: E.kind || "mine", shopName: E.kind === "shop" ? document.getElementById("f-shop").value.trim() : "", createdAt: E.id ? ((state.presets.find(function(x){ return x.id === E.id; }) || {}).createdAt || Date.now()) : Date.now() };
     if (E.id) { var pi = state.presets.findIndex(function(x){ return x.id === E.id; }); if (pi >= 0) state.presets[pi] = pr; }
     else state.presets.push(pr);
     save(); E = null; renderPresets(); renderList(); showView(false); toast("おすすめミックスを保存しました");
     return;
   }
-  var rec = { id: E.id || "r" + Date.now(), title: title,
+  var rec = { id: E.id || "r" + Date.now(), title: title, sizeName: document.getElementById("f-size").value.trim(),
     date: document.getElementById("f-date").value || todayStr(),
     place: document.getElementById("f-place").value.trim(), items: items,
     taste: document.getElementById("f-taste").value.trim(), vibeText: document.getElementById("f-vibe").value.trim(),
@@ -641,6 +712,38 @@ document.getElementById("btn-delete").addEventListener("click", function() {
   else state.records = state.records.filter(function(r){ return r.id !== E.id; });
   save(); E = null; renderList(); renderPresets(); showView(false); toast("削除しました");
 });
+document.getElementById("btn-dup-size").addEventListener("click", function() {
+  document.getElementById("dup-box").classList.toggle("hidden");
+});
+document.querySelectorAll("#dup-factors .chip").forEach(function(c) {
+  c.addEventListener("click", function() {
+    dupFactor = parseFloat(c.getAttribute("data-f")) || 1;
+    document.querySelectorAll("#dup-factors .chip").forEach(function(x){ x.classList.toggle("on", x === c); });
+  });
+});
+document.getElementById("btn-dup-open").addEventListener("click", function() {
+  if (!E) return;
+  var mode = E.mode, vibes = E.vibes.slice(), kind = E.kind, title = document.getElementById("f-title").value;
+  var items = scaledItems(E.items.filter(function(it){ return (parseFloat(it.grams) || 0) > 0; }), dupFactor);
+  if (!items.length) { document.getElementById("save-status").textContent = "先にフレーバーとグラム数を入れてください。"; return; }
+  if (mode === "preset") { openPresetEditor(null); E.kind = kind || "mine"; }
+  else openEditor(null);
+  E.items = items; E.vibes = vibes;
+  document.getElementById("f-title").value = title;
+  document.getElementById("f-size").value = "";
+  if (mode === "preset") applyMode();
+  renderCatalog(); renderGramRows(); renderEditVibes();
+  document.getElementById("save-status").textContent = "サイズ違いとして開きました。サイズ名を入れて保存してください。";
+});
+function showHelp() {
+  document.getElementById("view-list").classList.add("hidden");
+  document.getElementById("view-edit").classList.add("hidden");
+  document.getElementById("view-help").classList.remove("hidden");
+  document.getElementById("btn-home").classList.remove("hidden");
+  window.scrollTo(0, 0);
+}
+document.getElementById("btn-help").addEventListener("click", showHelp);
+document.getElementById("btn-help-close").addEventListener("click", function(){ E = null; renderList(); renderPresets(); showView(false); });
 document.getElementById("btn-new").addEventListener("click", function(){ openEditor(null); });
 document.getElementById("btn-new-preset").addEventListener("click", function(){ openPresetEditor(null); });
 document.getElementById("btn-home").addEventListener("click", function(){ E = null; renderList(); renderPresets(); showView(false); });
