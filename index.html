@@ -648,7 +648,11 @@ function renderOshiChips() {
 function oshiScore(f) {
   var s = 0;
   var lab = f.label, en = (f.en || "").toLowerCase();
-  function hit(kw) { return lab.indexOf(kw) >= 0 || en.indexOf(kw.toLowerCase()) >= 0; }
+  function hit(kw) {
+    /* グレープフルーツは「グレープ」のキーワードでは数えない（紫などでグレープ扱いされるのを防ぐ） */
+    if (kw === "グレープ" && (lab.indexOf("グレープフルーツ") >= 0 || en.indexOf("grapefruit") >= 0)) return false;
+    return lab.indexOf(kw) >= 0 || en.indexOf(kw.toLowerCase()) >= 0;
+  }
   (OSHI_COLORS[OSHI.color] || []).forEach(function(kw) { if (hit(kw)) s += 3; });
   OSHI.vibes.forEach(function(v) { (OSHI_VIBES[v] || []).forEach(function(kw) { if (hit(kw)) s += 2; }); });
   return s;
@@ -697,6 +701,31 @@ function oshiCore(f) {
   if (oshiStrongKind(f)) return "ミント・アイス";
   return "genre:" + (f.genre || f.label);
 }
+/* 味の系統（家族）：同じ果物・同じ味の系統は、核が違っても結果に1つまで（例：グレープとグレープフルーツの共存を防ぐ） */
+function oshiFamily(f) {
+  var t = (f.label + " " + (f.en || "")).toLowerCase();
+  function has(kws) { for (var i = 0; i < kws.length; i++) { if (t.indexOf(kws[i]) >= 0) return true; } return false; }
+  if (has(["グレープフルーツ", "grapefruit"])) return "グレープフルーツ";
+  if (has(["ストロベリー", "strawberry"])) return "ストロベリー";
+  if (has(["ブルーベリー", "blueberry"])) return "ブルーベリー";
+  if (has(["ラズベリー", "raspberry"])) return "ラズベリー";
+  if (has(["チェリー", "cherry"])) return "チェリー";
+  if (has(["レモン", "lemon"])) return "レモン";
+  if (has(["ライム", "lime"])) return "ライム";
+  if (has(["オレンジ", "orange"])) return "オレンジ";
+  if (has(["ユズ", "ゆず", "yuzu"])) return "ユズ";
+  if (has(["グレープ", "マスカット", "grape"])) return "グレープ";
+  if (has(["マンゴー", "mango"])) return "マンゴー";
+  if (has(["パイナップル", "pineapple"])) return "パイナップル";
+  if (has(["ピーチ", "peach"])) return "ピーチ";
+  if (has(["メロン", "スイカ", "ウォーターメロン", "melon", "watermelon"])) return "メロン";
+  if (has(["アップル", "りんご", "リンゴ", " apple"])) return "アップル";
+  if (has(["バナナ", "banana"])) return "バナナ";
+  if (has(["ライチ", "lychee"])) return "ライチ";
+  if (has(["キウィ", "キウイ", "kiwi"])) return "キウィ";
+  if (has(["ザクロ", "ポメグラネイト", "pomegranate", "granada"])) return "ザクロ";
+  return "name:" + oshiLooseKey(f);
+}
 /* 名前の正規化キー：「アイス」「アイスド」等の接頭辞を落として同一視する */
 function oshiNameKey(f) {
   var n = (f.label || "").split("アイスド").join("").split("アイス").join("");
@@ -711,13 +740,21 @@ function diagnoseOshi() {
   var name = document.getElementById("oshi-name").value.trim();
   if (!OSHI.color && !OSHI.vibes.length) { toast("カラーか雰囲気を1つは選んでね"); return; }
   var scored = FLAVOR_DB.map(function(f) { return { f: f, s: oshiScore(f) }; }).filter(function(x) { return x.s > 0; });
-  scored.sort(function(a, b) { return b.s - a.s; });
+  /* 同点の並びは推しの名前で散らす（同じ推しでは毎回同じ結果、カタログ先頭の味ばかり出るのを防ぐ） */
+  function nameHash(f) {
+    var t = name + "|" + (f.brand || "") + "|" + (f.label || ""), h = 5381;
+    for (var i = 0; i < t.length; i++) h = ((h * 33) ^ t.charCodeAt(i)) >>> 0;
+    return h;
+  }
+  scored.sort(function(a, b) { return (b.s - a.s) || (nameHash(a.f) - nameHash(b.f)); });
   /* 選定ルール：味の核は重ねない／ミント・アイス系は合わせて1枠まで／ミルク・コンデンスミルク系は合わせて1枠まで／スプリングウォーターはブースター枠で強い枠と重なってよく、おすすめ量0.5gで最後尾 */
-  var picks = [], usedCore = {}, usedName = {}, usedLoose = {}, strongUsed = false, milkUsed = false;
-  function tryAdd(x, strictCore, strictGroups) {
+  var picks = [], usedCore = {}, usedName = {}, usedLoose = {}, usedFamily = {}, strongUsed = false, milkUsed = false;
+  function tryAdd(x, strictCore, strictGroups, strictFamily) {
     if (picks.length >= 3) return;
     var f = x.f, nk = oshiNameKey(f), lk = oshiLooseKey(f);
     if (usedName[nk] || usedLoose[lk]) return;
+    var fam = oshiFamily(f);
+    if (strictFamily && usedFamily[fam]) return;
     var core = oshiCore(f);
     if (strictCore && usedCore[core]) return;
     var strong = oshiStrongKind(f), milk = oshiMilkKind(f), sw = oshiSpringWater(f);
@@ -725,19 +762,19 @@ function diagnoseOshi() {
       if (strong && strongUsed) return;
       if (milk && milkUsed) return;
     }
-    usedName[nk] = 1; usedLoose[lk] = 1; usedCore[core] = 1;
+    usedName[nk] = 1; usedLoose[lk] = 1; usedCore[core] = 1; usedFamily[fam] = 1;
     if (strong) strongUsed = true;
     if (milk) milkUsed = true;
     /* スプリングウォーターは強い枠と重なってよいが、並びは締め役（アクセント扱い） */
     picks.push({ f: f, accent: strong || milk || sw });
   }
-  scored.forEach(function(x) { tryAdd(x, true, true); });
-  if (picks.length < 3) scored.forEach(function(x) { tryAdd(x, false, true); });
+  scored.forEach(function(x) { tryAdd(x, true, true, true); });
+  if (picks.length < 3) scored.forEach(function(x) { tryAdd(x, false, true, true); });
   if (picks.length < 3) {
     /* 候補が強い枠ばかりで3つ揃わないとき（クール単独など）は、強い枠でないものを土台として補う */
-    FLAVOR_DB.forEach(function(f) { if (!oshiStrongKind(f) && !oshiMilkKind(f) && !oshiSpringWater(f)) tryAdd({ f: f, s: 0 }, true, true); });
+    FLAVOR_DB.forEach(function(f) { if (!oshiStrongKind(f) && !oshiMilkKind(f) && !oshiSpringWater(f)) tryAdd({ f: f, s: 0 }, true, true, true); });
   }
-  if (picks.length < 3) scored.forEach(function(x) { tryAdd(x, false, false); });
+  if (picks.length < 3) scored.forEach(function(x) { tryAdd(x, false, false, false); });
   if (!picks.length) { toast("合うフレーバーが見つからなかった…組み合わせを変えてみて"); return; }
   /* 強い枠（ミント・アイス・ミルク）は締め役：並びは最後、グラムは一番少なめ（合計13g目安で2〜3g） */
   /* スプリングウォーターはブースターとして一番最後に置く */
