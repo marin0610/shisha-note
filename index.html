@@ -653,14 +653,14 @@ function oshiScore(f) {
   OSHI.vibes.forEach(function(v) { (OSHI_VIBES[v] || []).forEach(function(kw) { if (hit(kw)) s += 2; }); });
   return s;
 }
-/* スプリングウォーター：使うなら0.5gまで。強い枠（アクセント）として扱い、ミント・アイス系との同時出現も避ける */
+/* スプリングウォーター：強い味に少量足すブースター枠。ミント・アイス系など強い枠と重なってもよい（強い枠の数には数えない）。診断でおすすめする量は0.5g */
 function oshiSpringWater(f) {
   var t = (f.label + " " + (f.en || "")).toLowerCase();
   return t.indexOf("スプリングウォーター") >= 0 || t.indexOf("spring water") >= 0 || t.indexOf("springwater") >= 0;
 }
-/* 強さのある枠（ミント系・アイス系）：名前に清涼ワードを含むか清涼系ジャンル。合わせて1枠まで */
+/* 強さのある枠（ミント系・アイス系）：名前に清涼ワードを含むか清涼系ジャンル。合わせて1枠まで（スプリングウォーターはブースター枠なので対象外） */
 function oshiStrongKind(f) {
-  if (oshiSpringWater(f)) return true;
+  if (oshiSpringWater(f)) return false;
   if ((f.genres || []).indexOf("清涼系") >= 0) return true;
   var lab = f.label || "";
   if (lab.indexOf("ミント") >= 0 || lab.indexOf("メンソール") >= 0 || lab.indexOf("ユーカリ") >= 0 || lab.indexOf("アイス") >= 0 || lab.indexOf("チル") >= 0 || lab.indexOf("クール") >= 0) return true;
@@ -674,6 +674,7 @@ function oshiMilkKind(f) {
 }
 /* 味の核：名前違い・ブランド違いでも同じ味は同一視する（例：アイスミント／アイスドミント→ミント） */
 function oshiCore(f) {
+  if (oshiSpringWater(f)) return "スプリングウォーター";
   var t = (f.label + " " + (f.en || "")).toLowerCase();
   function has(kws) { for (var i = 0; i < kws.length; i++) { if (t.indexOf(kws[i]) >= 0) return true; } return false; }
   if (has(["ストロベリー", "ブルーベリー", "ラズベリー", "ブラックベリー", "ベリー", "カシス", "チェリー", "クランベリー", "strawberry", "blueberry", "raspberry", "blackberry", "berry", "cherry", "cassis", "cranberry"])) return "ベリー";
@@ -711,7 +712,7 @@ function diagnoseOshi() {
   if (!OSHI.color && !OSHI.vibes.length) { toast("カラーか雰囲気を1つは選んでね"); return; }
   var scored = FLAVOR_DB.map(function(f) { return { f: f, s: oshiScore(f) }; }).filter(function(x) { return x.s > 0; });
   scored.sort(function(a, b) { return b.s - a.s; });
-  /* 選定ルール：味の核は重ねない／ミント・アイス系は合わせて1枠まで／ミルク・コンデンスミルク系は合わせて1枠まで */
+  /* 選定ルール：味の核は重ねない／ミント・アイス系は合わせて1枠まで／ミルク・コンデンスミルク系は合わせて1枠まで／スプリングウォーターはブースター枠で強い枠と重なってよく、おすすめ量0.5gで最後尾 */
   var picks = [], usedCore = {}, usedName = {}, usedLoose = {}, strongUsed = false, milkUsed = false;
   function tryAdd(x, strictCore, strictGroups) {
     if (picks.length >= 3) return;
@@ -719,7 +720,7 @@ function diagnoseOshi() {
     if (usedName[nk] || usedLoose[lk]) return;
     var core = oshiCore(f);
     if (strictCore && usedCore[core]) return;
-    var strong = oshiStrongKind(f), milk = oshiMilkKind(f);
+    var strong = oshiStrongKind(f), milk = oshiMilkKind(f), sw = oshiSpringWater(f);
     if (strictGroups) {
       if (strong && strongUsed) return;
       if (milk && milkUsed) return;
@@ -727,25 +728,29 @@ function diagnoseOshi() {
     usedName[nk] = 1; usedLoose[lk] = 1; usedCore[core] = 1;
     if (strong) strongUsed = true;
     if (milk) milkUsed = true;
-    picks.push({ f: f, accent: strong || milk });
+    /* スプリングウォーターは強い枠と重なってよいが、並びは締め役（アクセント扱い） */
+    picks.push({ f: f, accent: strong || milk || sw });
   }
   scored.forEach(function(x) { tryAdd(x, true, true); });
   if (picks.length < 3) scored.forEach(function(x) { tryAdd(x, false, true); });
   if (picks.length < 3) {
     /* 候補が強い枠ばかりで3つ揃わないとき（クール単独など）は、強い枠でないものを土台として補う */
-    FLAVOR_DB.forEach(function(f) { if (!oshiStrongKind(f) && !oshiMilkKind(f)) tryAdd({ f: f, s: 0 }, true, true); });
+    FLAVOR_DB.forEach(function(f) { if (!oshiStrongKind(f) && !oshiMilkKind(f) && !oshiSpringWater(f)) tryAdd({ f: f, s: 0 }, true, true); });
   }
   if (picks.length < 3) scored.forEach(function(x) { tryAdd(x, false, false); });
   if (!picks.length) { toast("合うフレーバーが見つからなかった…組み合わせを変えてみて"); return; }
   /* 強い枠（ミント・アイス・ミルク）は締め役：並びは最後、グラムは一番少なめ（合計13g目安で2〜3g） */
-  var ordered = picks.filter(function(p) { return !p.accent; }).concat(picks.filter(function(p) { return p.accent; }));
+  /* スプリングウォーターはブースターとして一番最後に置く */
+  var ordered = picks.filter(function(p) { return !p.accent; })
+    .concat(picks.filter(function(p) { return p.accent && !oshiSpringWater(p.f); }))
+    .concat(picks.filter(function(p) { return p.accent && oshiSpringWater(p.f); }));
   var nAcc = ordered.filter(function(p) { return p.accent; }).length;
   var gramsSet;
   if (ordered.length >= 3) gramsSet = nAcc === 1 ? [7, 4, 2] : (nAcc === 2 ? [9, 2, 2] : [6, 4, 3]);
   else if (ordered.length === 2) gramsSet = nAcc === 1 ? [10, 3] : [8, 5];
   else gramsSet = [13];
   var gramsArr = ordered.map(function(p, i) { return gramsSet[i]; });
-  /* スプリングウォーターは0.5g厳守（他のアクセント枠の2gルールより優先）。余った分は主役側に回し、合計が大きく崩れないようにする */
+  /* スプリングウォーターのおすすめ量は0.5g（他のアクセント枠の2gより優先して0.5gで出す）。余った分は主役側に回し、合計が大きく崩れないようにする */
   ordered.forEach(function(p, i) {
     if (oshiSpringWater(p.f) && gramsArr[i] > 0.5) {
       var freed = gramsArr[i] - 0.5;
