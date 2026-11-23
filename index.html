@@ -653,8 +653,14 @@ function oshiScore(f) {
   OSHI.vibes.forEach(function(v) { (OSHI_VIBES[v] || []).forEach(function(kw) { if (hit(kw)) s += 2; }); });
   return s;
 }
+/* スプリングウォーター：使うなら0.5gまで。強い枠（アクセント）として扱い、ミント・アイス系との同時出現も避ける */
+function oshiSpringWater(f) {
+  var t = (f.label + " " + (f.en || "")).toLowerCase();
+  return t.indexOf("スプリングウォーター") >= 0 || t.indexOf("spring water") >= 0 || t.indexOf("springwater") >= 0;
+}
 /* 強さのある枠（ミント系・アイス系）：名前に清涼ワードを含むか清涼系ジャンル。合わせて1枠まで */
 function oshiStrongKind(f) {
+  if (oshiSpringWater(f)) return true;
   if ((f.genres || []).indexOf("清涼系") >= 0) return true;
   var lab = f.label || "";
   if (lab.indexOf("ミント") >= 0 || lab.indexOf("メンソール") >= 0 || lab.indexOf("ユーカリ") >= 0 || lab.indexOf("アイス") >= 0 || lab.indexOf("チル") >= 0 || lab.indexOf("クール") >= 0) return true;
@@ -738,7 +744,16 @@ function diagnoseOshi() {
   if (ordered.length >= 3) gramsSet = nAcc === 1 ? [7, 4, 2] : (nAcc === 2 ? [9, 2, 2] : [6, 4, 3]);
   else if (ordered.length === 2) gramsSet = nAcc === 1 ? [10, 3] : [8, 5];
   else gramsSet = [13];
-  var items = ordered.map(function(p, i) { return itemFromDb(p.f, gramsSet[i]); });
+  var gramsArr = ordered.map(function(p, i) { return gramsSet[i]; });
+  /* スプリングウォーターは0.5g厳守（他のアクセント枠の2gルールより優先）。余った分は主役側に回し、合計が大きく崩れないようにする */
+  ordered.forEach(function(p, i) {
+    if (oshiSpringWater(p.f) && gramsArr[i] > 0.5) {
+      var freed = gramsArr[i] - 0.5;
+      gramsArr[i] = 0.5;
+      for (var j = 0; j < ordered.length; j++) { if (!ordered[j].accent) { gramsArr[j] += freed; break; } }
+    }
+  });
+  var items = ordered.map(function(p, i) { return itemFromDb(p.f, gramsArr[i]); });
   var title = (name || "推し") + "概念ミックス";
   var vibeText = OSHI.vibes.map(function(v) { return OSHI_VIBE_TEXT[v] || v; }).join("、");
   var comment = "イメージカラー「" + (OSHI.color || "なし") + "」" + (vibeText ? "に、" + vibeText + "雰囲気を重ねた" : "の") + "概念ミックスです。";
