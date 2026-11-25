@@ -606,7 +606,7 @@ var OSHI_COLORS = {
   "紫": ["グレープ", "ラベンダー", "ベリー", "プラム"],
   "黄色": ["レモン", "パイナップル", "マンゴー", "バナナ", "ユズ", "ゆず"],
   "オレンジ": ["オレンジ", "アプリコット", "マンゴー", "みかん"],
-  "緑": ["グリーンアップル", "キウィ", "メロン", "ライム", "マスカット"],
+  "緑": ["グリーンアップル", "アップル", "double apple", "two apple", "キウィ", "メロン", "ライム", "マスカット"],
   "白": ["バニラ", "ココナッツ", "ミルク", "クリーム", "ホワイト"],
   "黒": ["コーラ", "コーヒー", "ダーク", "チョコ", "ブラック"]
 };
@@ -651,6 +651,8 @@ function oshiScore(f) {
   function hit(kw) {
     /* グレープフルーツは「グレープ」のキーワードでは数えない（紫などでグレープ扱いされるのを防ぐ） */
     if (kw === "グレープ" && (lab.indexOf("グレープフルーツ") >= 0 || en.indexOf("grapefruit") >= 0)) return false;
+    /* パイナップルは「アップル」のキーワードでは数えない（アップル系として扱わない） */
+    if (kw === "アップル" && (lab.indexOf("パイナップル") >= 0 || en.indexOf("pineapple") >= 0)) return false;
     return lab.indexOf(kw) >= 0 || en.indexOf(kw.toLowerCase()) >= 0;
   }
   (OSHI_COLORS[OSHI.color] || []).forEach(function(kw) { if (hit(kw)) s += 3; });
@@ -701,30 +703,78 @@ function oshiCore(f) {
   if (oshiStrongKind(f)) return "ミント・アイス";
   return "genre:" + (f.genre || f.label);
 }
-/* 味の系統（家族）：同じ果物・同じ味の系統は、核が違っても結果に1つまで（例：グレープとグレープフルーツの共存を防ぐ） */
-function oshiFamily(f) {
+/* 含まれる果物の要素：名前から果物を全部拾う（系統判定と違い、最初に当たった1つで止めない）。
+   「グレープフルーツ」はグレープとは別の果物として扱う。「パイナップル」はアップル、「ウォーターメロン」はメロンと
+   誤判定しないよう、紛らわしいものから先に取り除いて判定する */
+function oshiFruitTokens(f) {
   var t = (f.label + " " + (f.en || "")).toLowerCase();
-  function has(kws) { for (var i = 0; i < kws.length; i++) { if (t.indexOf(kws[i]) >= 0) return true; } return false; }
-  if (has(["グレープフルーツ", "grapefruit"])) return "グレープフルーツ";
-  if (has(["ストロベリー", "strawberry"])) return "ストロベリー";
-  if (has(["ブルーベリー", "blueberry"])) return "ブルーベリー";
-  if (has(["ラズベリー", "raspberry"])) return "ラズベリー";
-  if (has(["チェリー", "cherry"])) return "チェリー";
-  if (has(["レモン", "lemon"])) return "レモン";
-  if (has(["ライム", "lime"])) return "ライム";
-  if (has(["オレンジ", "orange"])) return "オレンジ";
-  if (has(["ユズ", "ゆず", "yuzu"])) return "ユズ";
-  if (has(["グレープ", "マスカット", "grape"])) return "グレープ";
-  if (has(["マンゴー", "mango"])) return "マンゴー";
-  if (has(["パイナップル", "pineapple"])) return "パイナップル";
-  if (has(["ピーチ", "peach"])) return "ピーチ";
-  if (has(["メロン", "スイカ", "ウォーターメロン", "melon", "watermelon"])) return "メロン";
-  if (has(["アップル", "りんご", "リンゴ", " apple"])) return "アップル";
-  if (has(["バナナ", "banana"])) return "バナナ";
-  if (has(["ライチ", "lychee"])) return "ライチ";
-  if (has(["キウィ", "キウイ", "kiwi"])) return "キウィ";
-  if (has(["ザクロ", "ポメグラネイト", "pomegranate", "granada"])) return "ザクロ";
-  return "name:" + oshiLooseKey(f);
+  var found = [];
+  function take(kws, name) {
+    var hit = false;
+    kws.forEach(function(kw) { if (t.indexOf(kw) >= 0) { hit = true; t = t.split(kw).join(" "); } });
+    if (hit) found.push(name);
+  }
+  take(["グレープフルーツ", "grapefruit"], "グレープフルーツ");
+  take(["パイナップル", "pineapple"], "パイナップル");
+  take(["ウォーターメロン", "スイカ", "watermelon"], "ウォーターメロン");
+  take(["ストロベリー", "strawberry"], "ストロベリー");
+  take(["ブルーベリー", "blueberry"], "ブルーベリー");
+  take(["ラズベリー", "raspberry"], "ラズベリー");
+  take(["ブラックベリー", "blackberry"], "ブラックベリー");
+  take(["クランベリー", "cranberry"], "クランベリー");
+  take(["チェリー", "cherry"], "チェリー");
+  take(["カシス", "cassis"], "カシス");
+  take(["レモン", "lemon"], "レモン");
+  take(["ライム", "lime"], "ライム");
+  take(["オレンジ", "orange"], "オレンジ");
+  take(["ユズ", "ゆず", "yuzu"], "ユズ");
+  take(["タンジェリン", "tangerine"], "タンジェリン");
+  take(["みかん"], "みかん");
+  take(["グレープ", "マスカット", "grape"], "グレープ");
+  take(["マンゴー", "mango"], "マンゴー");
+  take(["パッション", "passion"], "パッション");
+  take(["グアバ", "guava"], "グアバ");
+  take(["ライチ", "lychee"], "ライチ");
+  take(["バナナ", "banana"], "バナナ");
+  take(["ココナッツ", "coconut"], "ココナッツ");
+  take(["メロン", "melon"], "メロン");
+  /* アップルは修飾語で味のタイプがはっきり分かれる（ダブル＝ツーアップル、グリーン＝青りんご等）ので、修飾まで含めて1要素にする。
+     修飾まで実質同じ同士だけが「似すぎ」になる。修飾なしの素のアップルは従来どおり（アップルミント等も素のアップル扱い） */
+  (function() {
+    function hasKw(kws) { for (var i = 0; i < kws.length; i++) { if (t.indexOf(kws[i]) >= 0) return true; } return false; }
+    if (!hasKw(["アップル", "りんご", "リンゴ", "apple"])) return;
+    var lab = f.label || "";
+    var enw = (f.en || "").toLowerCase().split(/[^a-z]+/);
+    var mods = [];
+    function mod(jas, ens, name) {
+      for (var i = 0; i < jas.length; i++) { if (lab.indexOf(jas[i]) >= 0) { mods.push(name); return; } }
+      for (var j = 0; j < ens.length; j++) { if (enw.indexOf(ens[j]) >= 0) { mods.push(name); return; } }
+    }
+    mod(["ダブル", "ツー", "トゥー"], ["double", "two", "twice"], "ダブル");
+    mod(["グリーン", "青"], ["green"], "グリーン");
+    mod(["レッド"], ["red"], "レッド");
+    mod(["ゴールデン"], ["golden"], "ゴールデン");
+    mod(["スイート"], ["sweet"], "スイート");
+    mod(["サワー"], ["sour"], "サワー");
+    ["アップル", "りんご", "リンゴ", "apple"].forEach(function(kw) { t = t.split(kw).join(" "); });
+    found.push(mods.length ? "アップル:" + mods.sort().join("+") : "アップル");
+  })();
+  take(["ピーチ", "もも", "モモ", "peach"], "ピーチ");
+  take(["ネクタリン", "nectarine"], "ネクタリン");
+  take(["アプリコット", "apricot"], "アプリコット");
+  take(["ザクロ", "ポメグラネイト", "pomegranate", "granada"], "ザクロ");
+  take(["キウィ", "キウイ", "kiwi"], "キウィ");
+  take(["ペアー", "ピアー", "洋なし", "pear"], "ペアー");
+  take(["プラム", "plum"], "プラム");
+  return found.sort();
+}
+/* 味があまりにも似ている組み合わせ：含まれる果物の要素が完全に一致する同士は重ねない（例：ブルーベリーとブルーベリーマフィン）。
+   要素が1つでも違えば、系統が同じでも別フレーバーとして共存OK（例：グレープとグレープフルーツ、ストロベリーとストロベリーライチ、メロンとウォーターメロン、ダブルアップルとグリーンアップル） */
+function oshiTooSimilar(a, b) {
+  var ta = oshiFruitTokens(a), tb = oshiFruitTokens(b);
+  if (!ta.length || ta.length !== tb.length) return false;
+  for (var i = 0; i < ta.length; i++) { if (ta[i] !== tb[i]) return false; }
+  return true;
 }
 /* 名前の正規化キー：「アイス」「アイスド」等の接頭辞を落として同一視する */
 function oshiNameKey(f) {
@@ -747,14 +797,13 @@ function diagnoseOshi() {
     return h;
   }
   scored.sort(function(a, b) { return (b.s - a.s) || (nameHash(a.f) - nameHash(b.f)); });
-  /* 選定ルール：味の核は重ねない／ミント・アイス系は合わせて1枠まで／ミルク・コンデンスミルク系は合わせて1枠まで／スプリングウォーターはブースター枠で強い枠と重なってよく、おすすめ量0.5gで最後尾 */
-  var picks = [], usedCore = {}, usedName = {}, usedLoose = {}, usedFamily = {}, strongUsed = false, milkUsed = false;
-  function tryAdd(x, strictCore, strictGroups, strictFamily) {
+  /* 選定ルール：味の核は重ねない／味があまりにも似ている組み合わせ（果物の要素が完全一致）は重ねない／ミント・アイス系は合わせて1枠まで／ミルク・コンデンスミルク系は合わせて1枠まで／スプリングウォーターはブースター枠で強い枠と重なってよく、おすすめ量0.5gで最後尾 */
+  var picks = [], usedCore = {}, usedName = {}, usedLoose = {}, strongUsed = false, milkUsed = false;
+  function tryAdd(x, strictCore, strictGroups, strictSimilar) {
     if (picks.length >= 3) return;
     var f = x.f, nk = oshiNameKey(f), lk = oshiLooseKey(f);
     if (usedName[nk] || usedLoose[lk]) return;
-    var fam = oshiFamily(f);
-    if (strictFamily && usedFamily[fam]) return;
+    if (strictSimilar) { for (var pi = 0; pi < picks.length; pi++) { if (oshiTooSimilar(f, picks[pi].f)) return; } }
     var core = oshiCore(f);
     if (strictCore && usedCore[core]) return;
     var strong = oshiStrongKind(f), milk = oshiMilkKind(f), sw = oshiSpringWater(f);
@@ -762,7 +811,7 @@ function diagnoseOshi() {
       if (strong && strongUsed) return;
       if (milk && milkUsed) return;
     }
-    usedName[nk] = 1; usedLoose[lk] = 1; usedCore[core] = 1; usedFamily[fam] = 1;
+    usedName[nk] = 1; usedLoose[lk] = 1; usedCore[core] = 1;
     if (strong) strongUsed = true;
     if (milk) milkUsed = true;
     /* スプリングウォーターは強い枠と重なってよいが、並びは締め役（アクセント扱い） */
